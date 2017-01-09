@@ -15,9 +15,6 @@ namespace AtomPackageManager.Services
         /// <param name="repositoryLocation">The location on disk you want to clone it too</param>
         private void Clone( GitCloneRequest request)
         {
-            // Get the name of the repository
-            string repoName = Path.GetFileNameWithoutExtension(request.sourceURL);
-
             // Create a folder if it does not exist. 
             if (!Directory.Exists(request.workingDirectory))
             {
@@ -25,11 +22,27 @@ namespace AtomPackageManager.Services
             }
 
             // Create a new process for the git request. 
-            var processInfo = new ProcessStartInfo("cmd.exe", "/c git clone -o master " + request.sourceURL + " " + request.workingDirectory);
+			var processInfo = new ProcessStartInfo();
+			// Set our file depending on platofrom
+			if (Application.platform == RuntimePlatform.WindowsEditor)
+			{
+				processInfo.FileName = "cmd.exe";
+				// On windows we don't use shell
+				processInfo.UseShellExecute = false;
+				// On Windows '/c' closes the console when it's done
+				processInfo.Arguments = "/c ";
+			}
+			else if ( Application.platform == RuntimePlatform.OSXEditor)
+			{
+				processInfo.FileName = "/Applications/Utilities/Terminal.app/Contents/MacOS/Terminal";
+				// On Mac we do use shell
+				processInfo.UseShellExecute = true;
+			}
+			// Set our arguements
+			processInfo.Arguments += "/'git clone -o master " + request.sourceURL + " " + request.workingDirectory + '\'';
             // We don't want to show a window.
             processInfo.CreateNoWindow = false;
-            // We don't want to use Shell
-            processInfo.UseShellExecute = false;
+
             // We work inside our new directory
             processInfo.WorkingDirectory = request.workingDirectory;
             // Start the process
@@ -40,9 +53,7 @@ namespace AtomPackageManager.Services
             gitCloneProcess.Close();
             // Fire our event but we have to delay it so we are on the main thread
             EditorApplication.delayCall += () =>
-            {
-                Atom.Notify(Events.ON_CLONE_COMPLETE, request);
-            };
+            Atom.Notify (Events.ON_CLONE_COMPLETE, request);
         }
 
         /// <summary>

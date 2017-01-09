@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Xml.Serialization;
 using UnityEditor;
 using UnityEngine;
 
@@ -8,21 +9,31 @@ namespace AtomPackageManager.Packages
     public class AtomAssembly 
     {
         [SerializeField]
+        [XmlElement(ElementName = "AssemblyName")]
         private string m_AssemblyName;
 
         [SerializeField]
+        [XmlElement(ElementName = "UnityAssetPath")]
+        private string m_UnityAssetPath; 
+
+        [SerializeField]
+        [XmlElement(ElementName = "CompiledScripts")]
         private List<string> m_CompiledScripts;
 
         [SerializeField]
+        [XmlElement(ElementName = "References")]
         private List<string> m_References;
 
         [SerializeField]
+        [XmlElement(ElementName = "EditorCompatible")]
         private bool m_EditorCompatible;
 
         [SerializeField]
+        [XmlElement(ElementName = "CompatiableWithAnyPlatform")]
         private bool m_CompatibleWithAnyPlatform;
 
         [SerializeField]
+        [XmlElement(ElementName = "BuildTarget")]
         private BuildTarget m_BuildTargets;
 
         /// <summary>
@@ -31,7 +42,28 @@ namespace AtomPackageManager.Packages
         public string assemblyName
         {
             get { return m_AssemblyName; }
-            set { m_AssemblyName = value; }
+        }
+
+        /// <summary>
+        /// Gets the relative path that this assembly
+        /// should be exported too when it's compiled.
+        /// </summary>
+        public string unityAssetPath
+        {
+            get { return m_UnityAssetPath; }
+        }
+
+        /// <summary>
+        /// Gets the path from the root directory to
+        /// where this assembly will be put on disk in
+        /// the Unity project.
+        /// </summary>
+        public string systemAssetPath
+        {
+            get
+            {
+                return Application.dataPath.Replace("/Assets", '/' + m_UnityAssetPath);
+            }
         }
         
         /// <summary>
@@ -42,7 +74,6 @@ namespace AtomPackageManager.Packages
         public List<string> compiledScripts
         {
             get { return m_CompiledScripts; }
-            set { m_CompiledScripts = value; }
         }
 
         /// <summary>
@@ -51,7 +82,6 @@ namespace AtomPackageManager.Packages
         public List<string> references
         {
             get { return m_References; }
-            set { m_References = value; }
         }
 
         /// <summary>
@@ -61,7 +91,6 @@ namespace AtomPackageManager.Packages
         public bool EditorCompatible
         {
             get { return m_EditorCompatible; }
-            set { m_EditorCompatible = value; }
         }
 
         /// <summary>
@@ -71,7 +100,6 @@ namespace AtomPackageManager.Packages
         public bool CompatibleWithAnyPlatform
         {
             get { return m_CompatibleWithAnyPlatform; }
-            set { m_CompatibleWithAnyPlatform = value; }
         }
 
         /// <summary>
@@ -80,7 +108,6 @@ namespace AtomPackageManager.Packages
         public BuildTarget buildTargets
         {
             get { return m_BuildTargets; }
-            set { m_BuildTargets = value; }
         }
     }
 }

@@ -68,9 +68,6 @@ namespace AtomPackageManager.Services
             if(eventCode == Events.GIT_CLONE_REQUESTED)
             {
                 GitCloneRequest cloneRequest = (GitCloneRequest)context;
-                string gitURL = cloneRequest.sourceURL;
-                string workingDir = cloneRequest.workingDirectory;
-
                 // Create our start function
                 ThreadStart threadStart = delegate
                 {

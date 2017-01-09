@@ -8,8 +8,11 @@ namespace AtomPackageManager
     public class Atom : ScriptableObject
     {
         private static Atom m_Instance;
+        private static string m_ScriptImportLocation;
         private PackageManager m_PackageManager;
         private GitSourceControlService m_GitSourceControlService;
+        private CodeDomCompilerService m_CodeDomCompilerService;
+        private SerilizationService m_SerializationService;
 
         private List<Object> m_Listeners;
 
@@ -26,10 +29,13 @@ namespace AtomPackageManager
         {
             get
             {
-                return Application.dataPath.Replace("/Assets", Constants.SCRIPT_IMPORT_DIRECTORY);
+                if(string.IsNullOrEmpty(m_ScriptImportLocation))
+                {
+                    m_ScriptImportLocation = Application.dataPath.Replace("/Assets", Constants.SCRIPT_IMPORT_DIRECTORY);
+                }
+                return m_ScriptImportLocation;
             }
         }
-
         private static void LoadInstance()
         {
             if (m_Instance == null)
@@ -55,14 +61,21 @@ namespace AtomPackageManager
             m_Listeners = new List<Object>();
             m_PackageManager = PackageManager.Load();
             m_GitSourceControlService = new GitSourceControlService();
+            m_CodeDomCompilerService = new CodeDomCompilerService();
+            m_SerializationService = new SerilizationService();
+
             AddListener(m_GitSourceControlService);
             AddListener(m_PackageManager);
+            AddListener(m_CodeDomCompilerService);
+            AddListener(m_SerializationService);
         }
 
         private void OnDisable()
         {
             RemoveListener(m_GitSourceControlService);
             RemoveListener(m_PackageManager);
+            RemoveListener(m_CodeDomCompilerService);
+            RemoveListener(m_SerializationService);
         }
 
         /// <summary>

@@ -91,7 +91,7 @@ namespace AtomPackageManager
         /// Invoked when we have a ON_CLONE_COMPLETE event.
         /// </summary>
         /// <param name="directory"></param>
-        private void LoadPackageFromDirectory(string directory)
+        private AtomPackage LoadPackageFromDirectory(string directory)
         {
             // Try to find the atom.yaml in the root
             string[] files = Directory.GetFiles(directory, "atom.yaml");
@@ -107,9 +107,14 @@ namespace AtomPackageManager
                     // Make sure it's the correct type.
                     if(loadedObjects[i] is AtomPackage)
                     {
+                        // String get the name
                         AtomPackage package = Instantiate(loadedObjects[i]) as AtomPackage;
+                        // Assign it's name
+                        package.name = package.packageName;
                         // Add it
                         OnPackageAdded(package);
+                        // Return it
+                        return package;
                     }
                 }
             }
@@ -117,6 +122,7 @@ namespace AtomPackageManager
             {
                 Atom.Notify(Events.ERROR_ATOM_YAML_NOT_FOUND, directory);
             }
+            return null;
         }
 
         private void OnPackageAdded(AtomPackage package)
@@ -131,7 +137,11 @@ namespace AtomPackageManager
             if(eventCode == Events.ON_CLONE_COMPLETE)
             {
                 GitCloneRequest request = (GitCloneRequest)context;
-                LoadPackageFromDirectory(request.workingDirectory);
+                Debug.Log("request.workingDirectory:  " + request.workingDirectory);
+                AtomPackage package = LoadPackageFromDirectory(request.workingDirectory);
+                Debug.Log("PackageNull: " + package == null);
+                package.contentURL = request.sourceURL;
+                Debug.Log("After");
             }
         }
     }

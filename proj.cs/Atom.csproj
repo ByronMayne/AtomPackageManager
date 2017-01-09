@@ -53,10 +53,9 @@
     <Compile Include="Atom\Package\PackageEditor.cs" />
     <Compile Include="Atom\Package\PackageManager.cs" />
     <Compile Include="Atom\PathHelpers.cs" />
-    <Compile Include="Atom\PreferencesWindow.cs" />
-    <Compile Include="Atom\GitSourceControl.cs" />
+    <Compile Include="Atom\Services\CodeDomCompilerService.cs" />
+    <Compile Include="Atom\Services\GitSourceControlService.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Styles.cs" />
   </ItemGroup>
   <ItemGroup>
     <Service Include="{508349B6-6B84-4DF5-91F0-309BEEBAD82D}" />

@@ -7,13 +7,15 @@ namespace AtomPackageManager
 {
     public struct GitCloneRequest
     {
+        public readonly string name;
         public readonly string sourceURL;
         public readonly string workingDirectory;
 
-        public GitCloneRequest(string sourceURL, string workingDirectory)
+        public GitCloneRequest(string name, string sourceURL)
         {
+            this.name = name;
             this.sourceURL = sourceURL;
-            this.workingDirectory = workingDirectory;
+            workingDirectory = Atom.scriptImportLocation + name + '/';
         }
     }
 }

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Xml.Serialization;
 using UnityEngine;
 
 namespace AtomPackageManager.Packages
@@ -8,15 +9,19 @@ namespace AtomPackageManager.Packages
     public class AtomPackage : ScriptableObject
     {
         [SerializeField]
+        [XmlElement(ElementName="PackageName")]
         private string m_PackageName; 
 
         [SerializeField]
+        [XmlElement(ElementName = "Version")]
         private string m_Version;
 
         [SerializeField]
+        [XmlElement(ElementName = "ContentURL")]
         private string m_ContentURL;
 
         [SerializeField]
+        [XmlElement(ElementName = "Assemblies")]
         private List<AtomAssembly> m_Assemblies;
 
         /// <summary>

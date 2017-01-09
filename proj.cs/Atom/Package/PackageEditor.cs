@@ -64,6 +64,7 @@ namespace AtomPackageManager
                     SerializedObject package = new SerializedObject(current.objectReferenceValue);
                     // Add it to our list
                     m_Packages.Add(package);
+                    // Set the name
                     // Add label
                     m_PackageLabels[i] = new GUIContent(package.targetObject.name);
                 }
@@ -251,8 +252,8 @@ namespace AtomPackageManager
                         if (GUILayout.Button("Add", EditorStyles.miniButtonLeft))
                         {
                             m_IsAddingPackage = false;
-                            string directory = Path.GetFileNameWithoutExtension(m_NewPackageURL);
-                            GitCloneRequest request = new GitCloneRequest(m_NewPackageURL, Atom.scriptImportLocation + directory + '/');
+                            string repositoryName = Path.GetFileNameWithoutExtension(m_NewPackageURL);
+                            GitCloneRequest request = new GitCloneRequest(repositoryName, m_NewPackageURL);
                             Atom.Notify(Events.GIT_CLONE_REQUESTED, request);
                             m_NewPackageURL = string.Empty;
                             GUIUtility.hotControl = -1;
@@ -278,7 +279,6 @@ namespace AtomPackageManager
 
         private void DrawPackageInfo(Rect packageInfoRect)
         {
-            packageInfoRect.x += 10f;
             GUILayout.BeginArea(packageInfoRect);
             {
                 m_PackageInfoScrollPosition = EditorGUILayout.BeginScrollView(m_PackageInfoScrollPosition);
@@ -298,6 +298,40 @@ namespace AtomPackageManager
                     }
                 }
                 EditorGUILayout.EndScrollView();
+
+                GUILayout.BeginHorizontal(EditorStyles.textArea);
+                {
+                    if (GUILayout.Button(Labels.packageEditorSaveButton))
+                    {
+                        SaveSerilaizedValues();
+                    }
+
+                    if (GUILayout.Button(Labels.packageCompileButton))
+                    {
+                        // Get the current
+                        SerializedObject current = m_Packages[m_SelectedPackage];
+
+                        // Get the Package
+                        AtomPackage package = current.targetObject as AtomPackage;
+
+                        if (package == null)
+                        {
+                            Atom.Notify(Events.ERROR_PACKING_WAS_NULL, "The package the current index was null");
+                        }
+                        else
+                        {
+                            Atom.Notify(Events.COMPILE_PACKAGE_REQUEST, package);
+                        }
+                    }
+
+                    if (GUILayout.Button(Labels.packageEditorRemoveButton))
+                    {
+
+                    }
+                }
+
+                GUILayout.EndHorizontal();
+
             }
             GUILayout.EndArea();
         }

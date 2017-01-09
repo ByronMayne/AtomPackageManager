@@ -10,6 +10,7 @@ namespace AtomPackageManager
             packageEditorTitle = new GUIContent("Package Editor");
             packageEditorAddButton = new GUIContent("Add", "Opens a window to allow you to add a new package based on a url");
             packageEditorRemoveButton = new GUIContent("Remove", "Removes the currently selected package from your project");
+            packageCompileButton = new GUIContent("Compile Package");
             packageEditorSettingsButton = new GUIContent("*");
             packageEditorSaveButton = new GUIContent("Save");
         }
@@ -19,5 +20,6 @@ namespace AtomPackageManager
         public static readonly GUIContent packageEditorRemoveButton;
         public static readonly GUIContent packageEditorSettingsButton;
         public static readonly GUIContent packageEditorTitle;
+        public static readonly GUIContent packageCompileButton;
     }
 }

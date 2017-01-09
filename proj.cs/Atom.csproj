@@ -42,15 +42,24 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Atom\Atom.cs" />
+    <Compile Include="Atom\Constants.cs" />
+    <Compile Include="Atom\Events\GitCloneRequest.cs" />
+    <Compile Include="Atom\Events\Events.cs" />
+    <Compile Include="Atom\IEventListener.cs" />
+    <Compile Include="Atom\Labels.cs" />
     <Compile Include="Atom\MenuItems.cs" />
     <Compile Include="Atom\Package\AtomAssembly.cs" />
     <Compile Include="Atom\Package\AtomPackage.cs" />
+    <Compile Include="Atom\Package\PackageEditor.cs" />
     <Compile Include="Atom\Package\PackageManager.cs" />
+    <Compile Include="Atom\PathHelpers.cs" />
     <Compile Include="Atom\PreferencesWindow.cs" />
-    <Compile Include="Atom\Source Providers\GitSourceProvider.cs" />
-    <Compile Include="Atom\Source Providers\ISourceControl.cs" />
-    <Compile Include="Atom\Source Providers\SubversionSourceProvider.cs" />
+    <Compile Include="Atom\GitSourceControl.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Styles.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <Service Include="{508349B6-6B84-4DF5-91F0-309BEEBAD82D}" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Target Name="AfterBuild">

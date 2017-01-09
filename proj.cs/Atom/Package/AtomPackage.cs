@@ -8,10 +8,25 @@ namespace AtomPackageManager.Packages
     public class AtomPackage : ScriptableObject
     {
         [SerializeField]
+        private string m_PackageName; 
+
+        [SerializeField]
         private string m_Version;
 
         [SerializeField]
+        private string m_ContentURL;
+
+        [SerializeField]
         private List<AtomAssembly> m_Assemblies;
+
+        /// <summary>
+        /// The name of this package.
+        /// </summary>
+        public string packageName
+        {
+            get { return m_PackageName; }
+            set { m_PackageName = value; }
+        }
 
         /// <summary>
         /// The version of this Atom package.
@@ -20,6 +35,15 @@ namespace AtomPackageManager.Packages
         {
             get { return m_Version; }
             set { m_Version = value; }
+        }
+
+        /// <summary>
+        /// The url where the content can be found.
+        /// </summary>
+        public string contentURL
+        {
+            get { return m_ContentURL; }
+            set { m_ContentURL = value; }
         }
 
         /// <summary>

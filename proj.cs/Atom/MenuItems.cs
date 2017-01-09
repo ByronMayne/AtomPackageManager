@@ -8,18 +8,10 @@ namespace AtomPackageManager
 {
     internal static class MenuItems
     {
-        private const string MENU_ROOT = "Atom";
-        
-        [MenuItem(MENU_ROOT + "/Create Package..")]
-        private static void CreateAtomPackage()
+        [MenuItem(Constants.MENU_ITEM_ROOT + "/Package Manager...")]
+        private static void ShowPackageEditor()
         {
-
-        }
-
-        [MenuItem(MENU_ROOT + "/Load Package..")]
-        private static void LoadPackage()
-        {
-
+            EditorWindow.GetWindow<PackageEditor>();
         }
     }
 }

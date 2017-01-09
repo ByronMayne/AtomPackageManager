@@ -4,7 +4,8 @@ using UnityEngine;
 
 namespace AtomPackageManager.Packages
 {
-    public class AtomAssembly
+    [System.Serializable]
+    public class AtomAssembly 
     {
         [SerializeField]
         private string m_AssemblyName;

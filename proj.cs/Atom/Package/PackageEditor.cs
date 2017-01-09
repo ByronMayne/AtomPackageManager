@@ -128,7 +128,7 @@ namespace AtomPackageManager
 
         private void DrawToolbar()
         {
-            Rect layout = EditorGUILayout.BeginHorizontal(EditorStyles.toolbar, GUILayout.ExpandWidth(true));
+            EditorGUILayout.BeginHorizontal(EditorStyles.toolbar, GUILayout.ExpandWidth(true));
             {
                 GUILayout.FlexibleSpace();
 

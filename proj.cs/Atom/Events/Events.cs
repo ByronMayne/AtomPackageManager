@@ -21,6 +21,7 @@ namespace AtomPackageManager
         public const int ERROR_INVALID_GIT_URL = 101;
         public const int ERROR_PACKING_WAS_NULL = 102;
         public const int ERROR_INVALID_CAST_FOR_COMPILER = 103;
+		public const int ERROR_CANT_PARSE_ATOM_FILE = 104;
 
         // Compiling
         public const int COMPILE_PACKAGE_REQUEST = 150;

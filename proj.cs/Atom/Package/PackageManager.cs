@@ -137,11 +137,16 @@ namespace AtomPackageManager
             if(eventCode == Events.ON_CLONE_COMPLETE)
             {
                 GitCloneRequest request = (GitCloneRequest)context;
-                Debug.Log("request.workingDirectory:  " + request.workingDirectory);
                 AtomPackage package = LoadPackageFromDirectory(request.workingDirectory);
-                Debug.Log("PackageNull: " + package == null);
-                package.contentURL = request.sourceURL;
-                Debug.Log("After");
+				if(package == null)
+				{
+					Debug.Log("Could Not Parse");
+					Atom.Notify(Events.ERROR_CANT_PARSE_ATOM_FILE, request.workingDirectory);
+				}
+				else
+				{
+					package.contentURL = request.sourceURL;
+				}
             }
         }
     }

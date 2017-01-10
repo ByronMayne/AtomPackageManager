@@ -9,20 +9,16 @@ namespace AtomPackageManager.Packages
     public class AtomPackage : ScriptableObject
     {
         [SerializeField]
-        [XmlElement(ElementName="PackageName")]
-        private string m_PackageName; 
+        private string m_PackageName = "New Package";
 
         [SerializeField]
-        [XmlElement(ElementName = "Version")]
-        private string m_Version;
+        private string m_Version = "1.0.0.0";
 
         [SerializeField]
-        [XmlElement(ElementName = "ContentURL")]
-        private string m_ContentURL;
+        private string m_ContentURL = "Not Set";
 
         [SerializeField]
-        [XmlElement(ElementName = "Assemblies")]
-        private List<AtomAssembly> m_Assemblies;
+        private List<AtomAssembly> m_Assemblies = new List<AtomAssembly>();
 
         /// <summary>
         /// The name of this package.

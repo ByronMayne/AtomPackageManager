@@ -1,6 +1,7 @@
 ﻿using AtomPackageManager.Packages;
 using System.Collections.Generic;
 using System.IO;
+using UnityEditor;
 using UnityEditorInternal;
 using UnityEngine;
 using UnityEngine.Assertions;
@@ -27,22 +28,22 @@ namespace AtomPackageManager
             // Try to find if any instance is currently alive. 
             instance = FindObjectOfType<PackageManager>();
 
-            if(instance == null)
+            if (instance == null)
             {
                 // Check if we have one to load from disk
                 string saveLocation = GetLocationOnDisk();
 
-                if(File.Exists(saveLocation))
+                if (File.Exists(saveLocation))
                 {
                     // We load the one from disk.
-                    Object[] loadedObjects = InternalEditorUtility.LoadSerializedFileAndForget(saveLocation); 
+                    Object[] loadedObjects = InternalEditorUtility.LoadSerializedFileAndForget(saveLocation);
                     // Make sure we loaded something
-                    if(loadedObjects.Length > 0)
+                    if (loadedObjects.Length > 0)
                     {
                         // First value should be our Package Manager
                         instance = Instantiate(loadedObjects[0]) as PackageManager;
                         // We might have to loop over sub types
-                        for(int i = 1; i < loadedObjects.Length; i++)
+                        for (int i = 1; i < loadedObjects.Length; i++)
                         {
                             // Load each of our packages
                             AtomPackage package = Instantiate(loadedObjects[i - 1]) as AtomPackage;
@@ -52,14 +53,14 @@ namespace AtomPackageManager
                     }
                 }
 
-                if(instance == null)
+                if (instance == null)
                 {
                     // Everything else failed creating a new one. 
                     instance = CreateInstance<PackageManager>();
                 }
             }
 
-            return instance; 
+            return instance;
         }
 
         [SerializeField]
@@ -73,8 +74,8 @@ namespace AtomPackageManager
             objectsToSave.Add(this);
             // Set all our packages
             for (int i = m_Packages.Count - 1; i >= 0; i--)
-            { 
-                if(m_Packages[i] != null)
+            {
+                if (m_Packages[i] != null)
                 {
                     objectsToSave.Add(m_Packages[i]);
                 }
@@ -91,62 +92,77 @@ namespace AtomPackageManager
         /// Invoked when we have a ON_CLONE_COMPLETE event.
         /// </summary>
         /// <param name="directory"></param>
-        private AtomPackage LoadPackageFromDirectory(string directory)
+        private AtomPackage LoadPackageFromDirectory(string directory, string sourceURL)
         {
             // Try to find the atom.yaml in the root
-            string[] files = Directory.GetFiles(directory, "atom.yaml");
+            string[] files = Directory.GetFiles(directory, "*.atom");
 
             // Do we have any results?
-            if(files.Length > 0)
+            for (int i = 0; i < files.Length; i++)
             {
-                // Load the Atom file using the first result.
-                Object[] loadedObjects = InternalEditorUtility.LoadSerializedFileAndForget(files[0]);
-                // Loop over them all
-                for(int i = 0; i < loadedObjects.Length; i++)
-                {
-                    // Make sure it's the correct type.
-                    if(loadedObjects[i] is AtomPackage)
-                    {
-                        // String get the name
-                        AtomPackage package = Instantiate(loadedObjects[i]) as AtomPackage;
-                        // Assign it's name
-                        package.name = package.packageName;
-                        // Add it
-                        OnPackageAdded(package);
-                        // Return it
-                        return package;
-                    }
-                }
+                SerilizationRequest request = new SerilizationRequest(files[i], sourceURL);
+                Atom.Notify(Events.DESERIALIZATION_REQUEST, request);
             }
-            else
+
+            if (files.Length <= 0)
             {
                 Atom.Notify(Events.ERROR_ATOM_YAML_NOT_FOUND, directory);
             }
             return null;
         }
 
-        private void OnPackageAdded(AtomPackage package)
+        private void OnDeSerializationComplete(AtomPackage package)
         {
+            // Assign it's name
+            package.name = package.packageName;
+            // Add it to our array
             m_Packages.Add(package);
+            // Send event that one was loaded. 
             Atom.Notify(Events.ON_PACKAGE_ADDED, package);
+            // Save the new file to disk.
             SaveToDisk();
+        }
+
+        private void OnPluginImporterd(PluginImporter pluginImporter)
+        {
+            for (int i = 0; i < m_Packages.Count; i++)
+            {
+                // Get our current package
+                AtomPackage package = m_Packages[i];
+                // Loop over it's assemblies
+                for (int x = 0; x < package.assemblies.Count; i++)
+                {
+                    // get our current assembly
+                    AtomAssembly assembly = package.assemblies[x];
+                    // Check if they have the same path
+                    Debug.Log("Check: " + pluginImporter.assetPath + " | " + assembly.unityAssetPath);
+                    if(string.CompareOrdinal(pluginImporter.assetPath, assembly.unityAssetPath) == 0)
+                    {
+                        // We have the correct assembly so we create an import request.
+                        ImportPluginRequest importRequest = new ImportPluginRequest(pluginImporter, assembly);
+                        // Send the request
+                        Atom.Notify(Events.PLUGIN_SET_IMPORTER_SETTINGS_REQUEST, importRequest);
+                        return;
+                    }
+                }
+            }
         }
 
         void IEventListener.OnNotify(int eventCode, object context)
         {
-            if(eventCode == Events.ON_CLONE_COMPLETE)
+            if (eventCode == Events.ON_CLONE_COMPLETE)
             {
                 GitCloneRequest request = (GitCloneRequest)context;
-                AtomPackage package = LoadPackageFromDirectory(request.workingDirectory);
-				if(package == null)
-				{
-					Debug.Log("Could Not Parse");
-					Atom.Notify(Events.ERROR_CANT_PARSE_ATOM_FILE, request.workingDirectory);
-				}
-				else
-				{
-					package.contentURL = request.sourceURL;
-				}
+                LoadPackageFromDirectory(request.workingDirectory, request.sourceURL);
+
+            }
+            else if (eventCode == Events.DESERIALIZATION_COMPLETE)
+            {
+                OnDeSerializationComplete(context as AtomPackage);
+            }
+            else if (eventCode == Events.PLUGIN_IMPORTED)
+            {
+                OnPluginImporterd(context as PluginImporter);
             }
         }
     }

@@ -255,7 +255,7 @@ namespace AtomPackageManager
                             string repositoryName = Path.GetFileNameWithoutExtension(m_NewPackageURL);
                             GitCloneRequest request = new GitCloneRequest(repositoryName, m_NewPackageURL);
                             Atom.Notify(Events.GIT_CLONE_REQUESTED, request);
-                            m_NewPackageURL = string.Empty;
+                            //m_NewPackageURL = string.Empty;
                             GUIUtility.hotControl = -1;
                             GUIUtility.keyboardControl = -1;
                         }
@@ -263,7 +263,7 @@ namespace AtomPackageManager
                         if (GUILayout.Button("Cancel", EditorStyles.miniButtonRight))
                         {
                             m_IsAddingPackage = false;
-                            m_NewPackageURL = string.Empty;
+                            //m_NewPackageURL = string.Empty;
                             GUIUtility.hotControl = -1;
                             GUIUtility.keyboardControl = -1;
                         }
@@ -326,7 +326,6 @@ namespace AtomPackageManager
 
                     if (GUILayout.Button(Labels.packageEditorRemoveButton))
                     {
-
                     }
                 }
 

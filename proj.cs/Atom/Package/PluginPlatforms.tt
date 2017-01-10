@@ -1,0 +1,76 @@
+﻿<#@ template  debug="true" hostSpecific="true" #>
+<#@ output extension=".cs" #>
+<#@ Assembly Name="System.Core" #>
+<#@ Assembly Name="System.Windows.Forms" #>
+<#@ assembly name="$(SolutionDir)lib\UnityEngine.dll" #>
+<#@ assembly name="$(SolutionDir)lib\UnityEditor.dll" #>
+<#@ import namespace="System" #>
+<#@ import namespace="UnityEditor"#>
+<#@ import namespace="System.IO" #>
+<#@ import namespace="System.Collections" #>
+<#@ import namespace="System.Reflection" #>
+<#@ import namespace="System.Collections.Generic" #> 
+<#	
+	Type enumType = typeof(BuildTarget);
+	BuildTarget[] targets = System.Enum.GetValues(enumType) as BuildTarget[];
+	List<BuildTarget> validTargets = new List<BuildTarget>();
+
+	for(int i = 0; i < targets.Length; i++)
+    {
+		if(targets[i] >= 0 ) 
+        {
+			// Get the member
+			MemberInfo enumMember = enumType.GetMember(targets[i].ToString())[0];
+			// Make sure it's not Obsolete
+			if(Attribute.GetCustomAttribute(enumMember, typeof(System.ObsoleteAttribute), false) == null)
+            {
+				validTargets.Add(targets[i]);
+            }
+        }
+    }
+#>
+using UnityEngine;
+using UnityEditor;
+using System.Xml.Serialization;
+
+[System.Serializable]
+public class PluginPlatforms
+{
+    [SerializeField]
+    public bool editorCompatible = true;
+
+	[SerializeField]
+    public bool anyPlatformCompatible = true;
+
+<#	for( int i = 0; i < validTargets.Count; i++) {#>  
+	[SerializeField]
+	public bool <#= validTargets[i] #>Compatible = true;
+<#
+	} 
+#>
+
+	public bool ApplyToImporter(PluginImporter importer)
+    {
+		bool hadChanges = false;
+		if(importer.GetCompatibleWithEditor() != editorCompatible)
+        {
+            importer.SetCompatibleWithEditor(editorCompatible);
+            hadChanges = true;
+        }
+		if(importer.GetCompatibleWithAnyPlatform() != anyPlatformCompatible)
+        {
+            importer.SetCompatibleWithAnyPlatform(anyPlatformCompatible);
+            hadChanges = true;
+        }
+<#	for( int i = 0; i < validTargets.Count; i++) { 
+#>		if(importer.GetCompatibleWithPlatform(BuildTarget.<#=validTargets[i]#>) != <#=validTargets[i]#>Compatible)
+        {
+            importer.SetCompatibleWithPlatform(BuildTarget.<#=validTargets[i]#>, <#=validTargets[i]#>Compatible);
+            hadChanges = true;
+        }
+<#
+	} 
+#>
+		return hadChanges;
+    }
+}

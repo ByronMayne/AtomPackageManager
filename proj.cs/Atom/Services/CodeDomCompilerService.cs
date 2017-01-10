@@ -5,6 +5,7 @@ using System.CodeDom.Compiler;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using UnityEditor;
 using UnityEngine;
 
 namespace AtomPackageManager.Services
@@ -30,10 +31,10 @@ namespace AtomPackageManager.Services
                 for(int i = 0; i < scriptsToCompile.Length; i++)
                 {
                     // Build our path
-                    string rootPath = Path.Combine(Atom.scriptImportLocation, package.name);
+                    string rootPath = Atom.scriptImportLocation + package.name;
                     //Debug.Log("Root: " + rootPath);
                     // Add the local script path
-                    string scriptPath = Path.Combine(rootPath, assembly.compiledScripts[i]);
+                    string scriptPath = rootPath + assembly.compiledScripts[i];
                     //Debug.Log("Script Path: " + assembly.compiledScripts[i]);
                     // Set our path.
                     scriptsToCompile[i] = scriptPath;
@@ -66,14 +67,19 @@ namespace AtomPackageManager.Services
                 // And if we should treat warnings as errors
                 parameters.TreatWarningsAsErrors = false;
                 // Create a new results object
-                Debug.Log(Time.timeSinceLevelLoad);
                 CompilerResults compileResults = codeProvider.CompileAssemblyFromFile(parameters, scriptsToCompile);
-                Debug.Log(Time.timeSinceLevelLoad);
                 // Print our errors.
                 compileResults.Errors.Cast<CompilerError>().ToList().ForEach(error => UnityEngine.Debug.LogError(error.ErrorText));
+            }
+            // Loop over all assemblies
+            foreach (AtomAssembly assembly in package.assemblies)
+            {
+                // Force import things
+                AssetDatabase.ImportAsset(assembly.unityAssetPath);
                 // Send our on complete event
                 Atom.Notify(Events.COMPILE_COMPLETE, assembly.systemAssetPath);
             }
+            AssetDatabase.Refresh();
         }
 
         /// <summary>

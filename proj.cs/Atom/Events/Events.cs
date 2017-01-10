@@ -26,5 +26,15 @@ namespace AtomPackageManager
         // Compiling
         public const int COMPILE_PACKAGE_REQUEST = 150;
         public const int COMPILE_COMPLETE = 151;
+
+        // Serialization 
+        public const int SERIALIZATION_REQUEST = 200;
+        public const int SERIALIZATION_COMPLETE = 201;
+        public const int DESERIALIZATION_REQUEST = 202;
+        public const int DESERIALIZATION_COMPLETE = 203;
+
+        // Importing 
+        public const int PLUGIN_IMPORTED = 250;
+        public const int PLUGIN_SET_IMPORTER_SETTINGS_REQUEST = 251;
     }
 }

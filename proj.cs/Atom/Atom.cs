@@ -13,6 +13,7 @@ namespace AtomPackageManager
         private GitSourceControlService m_GitSourceControlService;
         private CodeDomCompilerService m_CodeDomCompilerService;
         private SerilizationService m_SerializationService;
+        private PluginImporterService m_PluginImporterService;
 
         private List<Object> m_Listeners;
 
@@ -63,11 +64,13 @@ namespace AtomPackageManager
             m_GitSourceControlService = new GitSourceControlService();
             m_CodeDomCompilerService = new CodeDomCompilerService();
             m_SerializationService = new SerilizationService();
+            m_PluginImporterService = new PluginImporterService();
 
             AddListener(m_GitSourceControlService);
             AddListener(m_PackageManager);
             AddListener(m_CodeDomCompilerService);
             AddListener(m_SerializationService);
+            AddListener(m_PluginImporterService);
         }
 
         private void OnDisable()
@@ -76,6 +79,7 @@ namespace AtomPackageManager
             RemoveListener(m_PackageManager);
             RemoveListener(m_CodeDomCompilerService);
             RemoveListener(m_SerializationService);
+            RemoveListener(m_PluginImporterService);
         }
 
         /// <summary>

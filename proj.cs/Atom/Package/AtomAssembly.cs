@@ -1,5 +1,4 @@
 ﻿using System.Collections.Generic;
-using System.Xml.Serialization;
 using UnityEditor;
 using UnityEngine;
 
@@ -9,32 +8,19 @@ namespace AtomPackageManager.Packages
     public class AtomAssembly 
     {
         [SerializeField]
-        [XmlElement(ElementName = "AssemblyName")]
         private string m_AssemblyName;
 
         [SerializeField]
-        [XmlElement(ElementName = "UnityAssetPath")]
-        private string m_UnityAssetPath; 
+        private string m_UnityAssetPath;
 
         [SerializeField]
-        [XmlElement(ElementName = "CompiledScripts")]
-        private List<string> m_CompiledScripts;
+        private List<string> m_CompiledScripts = new List<string>(); 
 
         [SerializeField]
-        [XmlElement(ElementName = "References")]
         private List<string> m_References;
 
         [SerializeField]
-        [XmlElement(ElementName = "EditorCompatible")]
-        private bool m_EditorCompatible;
-
-        [SerializeField]
-        [XmlElement(ElementName = "CompatiableWithAnyPlatform")]
-        private bool m_CompatibleWithAnyPlatform;
-
-        [SerializeField]
-        [XmlElement(ElementName = "BuildTarget")]
-        private BuildTarget m_BuildTargets;
+        private PluginPlatforms m_SupportPlatforms = new PluginPlatforms();
 
         /// <summary>
         /// The name of the assembly that gets created. 
@@ -42,6 +28,9 @@ namespace AtomPackageManager.Packages
         public string assemblyName
         {
             get { return m_AssemblyName; }
+#if DEVELOPMENT
+            set { m_AssemblyName = value; }
+#endif 
         }
 
         /// <summary>
@@ -51,6 +40,9 @@ namespace AtomPackageManager.Packages
         public string unityAssetPath
         {
             get { return m_UnityAssetPath; }
+#if DEVELOPMENT
+            set { m_UnityAssetPath = value; }
+#endif
         }
 
         /// <summary>
@@ -74,6 +66,9 @@ namespace AtomPackageManager.Packages
         public List<string> compiledScripts
         {
             get { return m_CompiledScripts; }
+#if DEVELOPMENT
+            set { m_CompiledScripts = value; }
+#endif
         }
 
         /// <summary>
@@ -82,32 +77,44 @@ namespace AtomPackageManager.Packages
         public List<string> references
         {
             get { return m_References; }
+#if DEVELOPMENT
+            set { m_References = value; }
+#endif
         }
 
         /// <summary>
         /// Will this module be imported into Unity and
         /// be enabled in the Editor?
         /// </summary>
-        public bool EditorCompatible
+        public bool editorCompatible
         {
-            get { return m_EditorCompatible; }
+            get { return m_SupportPlatforms.EditorCompatible; }
+#if DEVELOPMENT
+            set { m_SupportPlatforms.EditorCompatible = value; }
+#endif
         }
 
         /// <summary>
         /// Will this module be imported into Unity and run on
         /// any platform?
         /// </summary>
-        public bool CompatibleWithAnyPlatform
+        public bool compatibleWithAnyPlatform
         {
-            get { return m_CompatibleWithAnyPlatform; }
+            get { return false; ; }
+#if DEVELOPMENT
+            set { }
+#endif
         }
 
         /// <summary>
         /// What platforms this assembly will be enabled in. 
         /// </summary>
-        public BuildTarget buildTargets
+        public PluginPlatforms supportedPlatforms
         {
-            get { return m_BuildTargets; }
+            get { return m_SupportPlatforms; }
+#if DEVELOPMENT
+            set { m_SupportPlatforms = value; }
+#endif
         }
     }
 }

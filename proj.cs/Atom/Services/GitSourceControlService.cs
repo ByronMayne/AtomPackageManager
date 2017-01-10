@@ -23,7 +23,7 @@ namespace AtomPackageManager.Services
 
             // Create a new process for the git request. 
 			var processInfo = new ProcessStartInfo();
-			// Set our file depending on platofrom
+			// Set our file depending on platform
 			if (Application.platform == RuntimePlatform.WindowsEditor)
 			{
 				processInfo.FileName = "cmd.exe";
@@ -38,8 +38,8 @@ namespace AtomPackageManager.Services
 				// On Mac we do use shell
 				processInfo.UseShellExecute = true;
 			}
-			// Set our arguements
-			processInfo.Arguments += "/'git clone -o master " + request.sourceURL + " " + request.workingDirectory + '\'';
+			// Set our arguments
+			processInfo.Arguments += " git clone -o master " + request.sourceURL + " " + request.workingDirectory;
             // We don't want to show a window.
             processInfo.CreateNoWindow = false;
 

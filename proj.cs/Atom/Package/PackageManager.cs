@@ -31,26 +31,14 @@ namespace AtomPackageManager
             if (instance == null)
             {
                 // Check if we have one to load from disk
-                string saveLocation = GetLocationOnDisk();
+                string filePath = GetLocationOnDisk();
 
-                if (File.Exists(saveLocation))
+				if (File.Exists(filePath))
                 {
-                    // We load the one from disk.
-                    Object[] loadedObjects = InternalEditorUtility.LoadSerializedFileAndForget(saveLocation);
-                    // Make sure we loaded something
-                    if (loadedObjects.Length > 0)
-                    {
-                        // First value should be our Package Manager
-                        instance = Instantiate(loadedObjects[0]) as PackageManager;
-                        // We might have to loop over sub types
-                        for (int i = 1; i < loadedObjects.Length; i++)
-                        {
-                            // Load each of our packages
-                            AtomPackage package = Instantiate(loadedObjects[i - 1]) as AtomPackage;
-                            // Add it to our instance
-                            instance.m_Packages.Add(package);
-                        }
-                    }
+					// Create our request
+					var request = DeserializeRequest<AtomProjectPackages>.FromFile(filePath);
+					// Send it off
+					Atom.Notify(Events.DESERIALIZATION_REQUEST, request);
                 }
 
                 if (instance == null)

@@ -5,7 +5,7 @@ using System.Collections.Generic;
 
 namespace AtomPackageManager
 {
-    public class Atom : ScriptableObject
+	public class Atom : ScriptableObject, IEventListener
     {
         private static Atom m_Instance;
         private static string m_ScriptImportLocation;
@@ -60,21 +60,13 @@ namespace AtomPackageManager
         public void OnEnable()
         {
             m_Listeners = new List<Object>();
-            m_PackageManager = PackageManager.Load();
-            m_GitSourceControlService = new GitSourceControlService();
-            m_CodeDomCompilerService = new CodeDomCompilerService();
-            m_SerializationService = new SerilizationService();
-            m_PluginImporterService = new PluginImporterService();
-
-            AddListener(m_GitSourceControlService);
-            AddListener(m_PackageManager);
-            AddListener(m_CodeDomCompilerService);
-            AddListener(m_SerializationService);
-            AddListener(m_PluginImporterService);
+            PackageManager.Load();
+			AddListener(this);
         }
 
         private void OnDisable()
         {
+			RemoveListener(this);
             RemoveListener(m_GitSourceControlService);
             RemoveListener(m_PackageManager);
             RemoveListener(m_CodeDomCompilerService);
@@ -82,12 +74,39 @@ namespace AtomPackageManager
             RemoveListener(m_PluginImporterService);
         }
 
+		private void OnPackageManagerLoaded(PackageManager manager)
+		{
+			m_GitSourceControlService = new GitSourceControlService();
+			m_CodeDomCompilerService = new CodeDomCompilerService();
+			m_SerializationService = new SerilizationService();
+			m_PluginImporterService = new PluginImporterService();
+
+			AddListener(m_GitSourceControlService);
+			AddListener(m_PackageManager);
+			AddListener(m_CodeDomCompilerService);
+			AddListener(m_SerializationService);
+			AddListener(m_PluginImporterService);
+		}
+
+			
+		public void OnNotify (int eventCode, object context)
+		{
+			if(Events.PACKAGE_MANAGER_LOADED)
+			{
+				if(context is PackageManager)
+				{
+					OnPackageManagerLoaded(context as PackageManager);
+				}
+			}
+		}
+
         /// <summary>
         /// Notifies all listeners that an event has happened. 
         /// </summary>
         public static void Notify(int eventCode, object context)
         {
             var listeners = instance.m_Listeners;
+
             for (int i = 0; i < listeners.Count; i++)
             {
                 IEventListener asEventListener = listeners[i] as IEventListener;

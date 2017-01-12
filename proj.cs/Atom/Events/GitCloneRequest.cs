@@ -15,7 +15,7 @@ namespace AtomPackageManager
         {
             this.name = name;
             this.sourceURL = sourceURL;
-            workingDirectory = Atom.scriptImportLocation + name + '/';
+            workingDirectory = null;// Constants.scriptImportLocation + name + '/';
         }
     }
 }

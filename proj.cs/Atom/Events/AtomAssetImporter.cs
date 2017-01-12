@@ -1,5 +1,6 @@
 ﻿
 using UnityEditor;
+using UnityEngine;
 
 namespace AtomPackageManager
 {
@@ -17,7 +18,9 @@ namespace AtomPackageManager
 
                 if(importer != null)
                 {
-                    Atom.Notify(Events.PLUGIN_IMPORTED, importer);
+                    // Makes the request float around in the Unity runtime until Atom picks it up and deletes it.
+                    ImportPluginRequest import = ImportPluginRequest.CreateInstance<ImportPluginRequest>();
+                    import.importer = importer;
                 }
             }
         }

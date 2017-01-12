@@ -2,133 +2,104 @@
 using UnityEditor;
 using AtomPackageManager.Services;
 using System.Collections.Generic;
+using AtomPackageManager.Packages;
+using System;
+using System.CodeDom.Compiler;
 
 namespace AtomPackageManager
 {
-	public class Atom : ScriptableObject, IEventListener
+    [System.Serializable]
+    public class Atom : ScriptableObject
     {
-        private static Atom m_Instance;
-        private static string m_ScriptImportLocation;
+        [SerializeField]
         private PackageManager m_PackageManager;
-        private GitSourceControlService m_GitSourceControlService;
-        private CodeDomCompilerService m_CodeDomCompilerService;
-        private SerilizationService m_SerializationService;
-        private PluginImporterService m_PluginImporterService;
 
-        private List<Object> m_Listeners;
+        // Our Default Tempaltes
+        private ICompilerService       m_ICompilerServiceTemplate        = new CodeDomCompilerService();
+        private ISourceControlService  m_ISourceControlServiceTemplate   = new GitSourceControlService();
+        private IPluginImporterService m_IPluginImporterServiceTemplate  = new PluginImporterService();
 
-        public static Atom instance
+        public PackageManager packageManager
         {
-            get
-            {
-                LoadInstance();
-                return m_Instance;
-            }
+            get { return m_PackageManager; }
         }
-
-        public static string scriptImportLocation
-        {
-            get
-            {
-                if(string.IsNullOrEmpty(m_ScriptImportLocation))
-                {
-                    m_ScriptImportLocation = Application.dataPath.Replace("/Assets", Constants.SCRIPT_IMPORT_DIRECTORY);
-                }
-                return m_ScriptImportLocation;
-            }
-        }
-        private static void LoadInstance()
-        {
-            if (m_Instance == null)
-            {
-                m_Instance = FindObjectOfType<Atom>();
-
-                if (m_Instance == null)
-                {
-                    m_Instance = CreateInstance<Atom>();
-                }
-            }
-        }
-
 
         [InitializeOnLoadMethod]
         private static void Initialize()
         {
-            LoadInstance();
-        }
-
-        public void OnEnable()
-        {
-            m_Listeners = new List<Object>();
-            PackageManager.Load();
-			AddListener(this);
-        }
-
-        private void OnDisable()
-        {
-			RemoveListener(this);
-            RemoveListener(m_GitSourceControlService);
-            RemoveListener(m_PackageManager);
-            RemoveListener(m_CodeDomCompilerService);
-            RemoveListener(m_SerializationService);
-            RemoveListener(m_PluginImporterService);
-        }
-
-		private void OnPackageManagerLoaded(PackageManager manager)
-		{
-			m_GitSourceControlService = new GitSourceControlService();
-			m_CodeDomCompilerService = new CodeDomCompilerService();
-			m_SerializationService = new SerilizationService();
-			m_PluginImporterService = new PluginImporterService();
-
-			AddListener(m_GitSourceControlService);
-			AddListener(m_PackageManager);
-			AddListener(m_CodeDomCompilerService);
-			AddListener(m_SerializationService);
-			AddListener(m_PluginImporterService);
-		}
-
-			
-		public void OnNotify (int eventCode, object context)
-		{
-			if(Events.PACKAGE_MANAGER_LOADED)
-			{
-				if(context is PackageManager)
-				{
-					OnPackageManagerLoaded(context as PackageManager);
-				}
-			}
-		}
-
-        /// <summary>
-        /// Notifies all listeners that an event has happened. 
-        /// </summary>
-        public static void Notify(int eventCode, object context)
-        {
-            var listeners = instance.m_Listeners;
-
-            for (int i = 0; i < listeners.Count; i++)
+            //  Try to grab our instance
+            Atom instance = FindObjectOfType<Atom>();
+            // Check if they are null
+            if(instance == null)
             {
-                IEventListener asEventListener = listeners[i] as IEventListener;
-
-                asEventListener.OnNotify(eventCode, context);
+                instance = CreateInstance<Atom>();
             }
         }
 
-        /// <summary>
-        /// Adds an event listener to Atom's internal events. 
-        /// </summary>
-        public static void AddListener<T>(T listener) where T : Object, IEventListener
+
+        private void OnEnable()
         {
-            instance.m_Listeners.Add(listener);
+            if(m_PackageManager == null)
+            {
+                m_PackageManager = new PackageManager(this);
+                m_PackageManager.Load();
+            }
+
+            // Find any plugins that have been imported since reload
+            ImportPluginRequest[] importRequests = FindObjectsOfType<ImportPluginRequest>();
+
+            for(int i = 0; i < importRequests.Length; i++)
+            {
+                packageManager.ValidatePluginOwnership(importRequests[i].importer, ApplyAtomImporterSettings);
+                DestroyImmediate(importRequests[i]);
+            }
+
+            // Assign our Editor Window reference if it's open
+            PackageEditor editor = FindObjectOfType<PackageEditor>();
+            // Check if it's null
+            if(editor != null)
+            {
+                editor.AssignAtom(this);
+            }
         }
 
-        /// <summary>
-        /// Removes an event Listener from Atom's internal events. 
-        /// </summary>
-        public static void RemoveListener<T>(T listener) where T : Object, IEventListener
+
+
+        public void CompilePackage(AtomPackage package)
         {
-            instance.m_Listeners.Remove(listener);
+            ICompilerService compilerService = m_ICompilerServiceTemplate.CreateCopy();
+            compilerService.CompilePackage(package, OnCodeCompiled);
+        }
+
+        private void OnCodeCompiled(ICompilerService compilerService, AtomPackage package)
+        {
+            if(compilerService.wasSuccessful)
+            {
+                // Import into Unity by looping over all assemblies
+                foreach (AtomAssembly assembly in package.assemblies)
+                {
+                    // Force import things
+                    AssetDatabase.ImportAsset(assembly.unityAssetPath);
+                }
+                // force a refresh
+                AssetDatabase.Refresh();
+            }
+            else
+            {
+                Debug.LogError("Unable to compile assemblies for package " + package.packageName);
+            }
+        }
+
+        public void ApplyAtomImporterSettings(PluginImporter importer, AtomAssembly assembly)
+        {
+            IPluginImporterService pluginImportSettings = m_IPluginImporterServiceTemplate.CreateCopy();
+            pluginImportSettings.ApplyAtomImporterSettings(importer, assembly);
+        }
+
+        public void Clone(string repositoryURL, string workingDirectory)
+        {
+            ISourceControlService sourceControlService = m_ISourceControlServiceTemplate.CreateCopy();
+            sourceControlService.Clone(repositoryURL, workingDirectory, m_PackageManager.CloneComplete);
         }
     }
 }

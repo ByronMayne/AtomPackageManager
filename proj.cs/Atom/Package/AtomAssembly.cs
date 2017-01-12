@@ -88,9 +88,9 @@ namespace AtomPackageManager.Packages
         /// </summary>
         public bool editorCompatible
         {
-            get { return m_SupportPlatforms.EditorCompatible; }
+            get { return m_SupportPlatforms.editorCompatible; }
 #if DEVELOPMENT
-            set { m_SupportPlatforms.EditorCompatible = value; }
+            set { m_SupportPlatforms.editorCompatible = value; }
 #endif
         }
 

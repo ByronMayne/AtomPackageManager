@@ -10,6 +10,7 @@ namespace AtomPackageManager
         // Package adding and removing
         public const int ON_PACKAGE_ADDED = 0;
         public const int ON_PACAKGE_REMOVED = 1;
+        public const int ON_PACKAGE_MANAGER_LOADED = 2;
 
         // Source Control
         public const int GIT_CLONE_REQUESTED = 50;

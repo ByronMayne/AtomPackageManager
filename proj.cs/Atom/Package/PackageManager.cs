@@ -1,4 +1,5 @@
 ﻿using AtomPackageManager.Packages;
+using AtomPackageManager.Services;
 using System.Collections.Generic;
 using System.IO;
 using UnityEditor;
@@ -8,149 +9,101 @@ using UnityEngine.Assertions;
 
 namespace AtomPackageManager
 {
+    public delegate void PluginRequiresImportDeleagete(PluginImporter importer, AtomAssembly assembly);
+
     [System.Serializable]
-    internal class PackageManager : ScriptableObject, IEventListener
+    public class PackageManager
     {
         public static string GetLocationOnDisk()
         {
-            return Application.dataPath + "/" + Constants.PACKAGE_MANAGER_LOCATION;
+            return Application.dataPath.Replace("/Assets", Constants.PACKAGE_MANAGER_LOCATION);
         }
 
-        /// <summary>
-        /// Loads the Package Manager from disk or creates a new one if none
-        /// exists.
-        /// </summary>
-        public static PackageManager Load()
+        public PackageManager(Atom atomInstance)
         {
-            // Create a holder
-            PackageManager instance = null;
-
-            // Try to find if any instance is currently alive. 
-            instance = FindObjectOfType<PackageManager>();
-
-            if (instance == null)
-            {
-                // Check if we have one to load from disk
-                string filePath = GetLocationOnDisk();
-
-				if (File.Exists(filePath))
-                {
-					// Create our request
-					var request = DeserializeRequest<AtomProjectPackages>.FromFile(filePath);
-					// Send it off
-					Atom.Notify(Events.DESERIALIZATION_REQUEST, request);
-                }
-
-                if (instance == null)
-                {
-                    // Everything else failed creating a new one. 
-                    instance = CreateInstance<PackageManager>();
-                }
-            }
-
-            return instance;
         }
 
         [SerializeField]
         private List<AtomPackage> m_Packages = new List<AtomPackage>();
-
-        public void SaveToDisk()
+        public List<AtomPackage> packages
         {
-            // Create a new save array
-            List<Object> objectsToSave = new List<Object>();
-            // Set the first element to the package manager
-            objectsToSave.Add(this);
-            // Set all our packages
-            for (int i = m_Packages.Count - 1; i >= 0; i--)
+            get { return m_Packages; }
+        }
+
+        public void Save()
+        {
+            // Cast us to JSON
+            string json = JsonUtility.ToJson(this);
+            // Save it to disk
+            File.WriteAllText(FilePaths.packageManagerPath, json);
+        }
+
+        public void Load()
+        {
+            // Check if it exists
+            if(File.Exists(FilePaths.packageManagerPath))
             {
-                if (m_Packages[i] != null)
-                {
-                    objectsToSave.Add(m_Packages[i]);
-                }
-                else
-                {
-                    m_Packages.RemoveAt(i);
-                }
+                // Read the json
+                string json = File.ReadAllText(FilePaths.packageManagerPath);
+                // Over write this object
+                JsonUtility.FromJsonOverwrite(json, this);
             }
-            // Save to disk
-            InternalEditorUtility.SaveToSerializedFileAndForget(objectsToSave.ToArray(), GetLocationOnDisk(), true);
+            else
+            {
+                // Save our current one.
+                Save();
+            }
         }
 
         /// <summary>
         /// Invoked when we have a ON_CLONE_COMPLETE event.
         /// </summary>
         /// <param name="directory"></param>
-        private AtomPackage LoadPackageFromDirectory(string directory, string sourceURL)
+        public void CloneComplete(ISourceControlService service)
         {
             // Try to find the atom.yaml in the root
-            string[] files = Directory.GetFiles(directory, "*.atom");
+            string[] files = Directory.GetFiles(service.workingDirectory, "*.atom");
 
             // Do we have any results?
             for (int i = 0; i < files.Length; i++)
             {
-                SerilizationRequest request = new SerilizationRequest(files[i], sourceURL);
-                Atom.Notify(Events.DESERIALIZATION_REQUEST, request);
+                // Get our json
+                string json = File.ReadAllText(files[i]);
+                // Get it's json version
+                AtomPackage package = new AtomPackage();
+                // Over write it
+                JsonUtility.FromJsonOverwrite(json, package);
+                // Add it to our lists
+                m_Packages.Add(package);
             }
 
-            if (files.Length <= 0)
+            PackageEditor editor = Object.FindObjectOfType<PackageEditor>();
+            if(editor != null)
             {
-                Atom.Notify(Events.ERROR_ATOM_YAML_NOT_FOUND, directory);
+                editor.LoadSerializedValues();
             }
-            return null;
         }
 
-        private void OnDeSerializationComplete(AtomPackage package)
-        {
-            // Assign it's name
-            package.name = package.packageName;
-            // Add it to our array
-            m_Packages.Add(package);
-            // Send event that one was loaded. 
-            Atom.Notify(Events.ON_PACKAGE_ADDED, package);
-            // Save the new file to disk.
-            SaveToDisk();
-        }
-
-        private void OnPluginImporterd(PluginImporter pluginImporter)
+        public void ValidatePluginOwnership(PluginImporter pluginImporter, PluginRequiresImportDeleagete OnRequiresImport)
         {
             for (int i = 0; i < m_Packages.Count; i++)
             {
                 // Get our current package
                 AtomPackage package = m_Packages[i];
                 // Loop over it's assemblies
-                for (int x = 0; x < package.assemblies.Count; i++)
+                for (int x = 0; x < package.assemblies.Count; x++)
                 {
                     // get our current assembly
                     AtomAssembly assembly = package.assemblies[x];
                     // Check if they have the same path
-                    Debug.Log("Check: " + pluginImporter.assetPath + " | " + assembly.unityAssetPath);
-                    if(string.CompareOrdinal(pluginImporter.assetPath, assembly.unityAssetPath) == 0)
+                    if (string.CompareOrdinal(pluginImporter.assetPath, assembly.unityAssetPath + assembly.assemblyName + ".dll") == 0)
                     {
-                        // We have the correct assembly so we create an import request.
-                        ImportPluginRequest importRequest = new ImportPluginRequest(pluginImporter, assembly);
-                        // Send the request
-                        Atom.Notify(Events.PLUGIN_SET_IMPORTER_SETTINGS_REQUEST, importRequest);
-                        return;
+                        if(OnRequiresImport != null)
+                        {
+                            OnRequiresImport(pluginImporter, assembly);
+                        }
                     }
                 }
-            }
-        }
-
-        void IEventListener.OnNotify(int eventCode, object context)
-        {
-            if (eventCode == Events.ON_CLONE_COMPLETE)
-            {
-                GitCloneRequest request = (GitCloneRequest)context;
-                LoadPackageFromDirectory(request.workingDirectory, request.sourceURL);
-
-            }
-            else if (eventCode == Events.DESERIALIZATION_COMPLETE)
-            {
-                OnDeSerializationComplete(context as AtomPackage);
-            }
-            else if (eventCode == Events.PLUGIN_IMPORTED)
-            {
-                OnPluginImporterd(context as PluginImporter);
             }
         }
     }

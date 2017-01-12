@@ -8,7 +8,7 @@ using System.IO;
 
 namespace AtomPackageManager
 {
-    public class PackageEditor : EditorWindow, IEventListener
+    public class PackageEditor : EditorWindow
     {
 
         private string m_PackageSearchFilter = "";
@@ -36,60 +36,46 @@ namespace AtomPackageManager
         private string m_NewPackageURL = "https://github.com/ByronMayne/UnityIO.git";
 
         // Serialized Data
-        private SerializedObject m_PackageManager;
+        private SerializedObject m_SerializedAtom;
         [SerializeField]
-        private List<SerializedObject> m_Packages = new List<SerializedObject>();
         private GUIContent[] m_PackageLabels = new GUIContent[0];
+        private Atom m_Atom;
 
-        private void LoadSerializedValues()
+        public void LoadSerializedValues()
         {
-            // Grab the manager
-            m_PackageManager = new SerializedObject(PackageManager.Load());
-            // Create our list
-            m_Packages = new List<SerializedObject>();
-            // Find the nested packages.
-            SerializedProperty packagesList = m_PackageManager.FindProperty("m_Packages");
-            // Create labels;
-            m_PackageLabels = new GUIContent[packagesList.arraySize];
-
-            // Load all valid ones
-            for (int i = 0; i < packagesList.arraySize; i++)
+            if (m_Atom != null)
             {
-                // Get the current
-                SerializedProperty current = packagesList.GetArrayElementAtIndex(i);
-                // Confirm it's not null
-                if (current.objectReferenceValue != null)
+                // Grab the manager
+                m_SerializedAtom =  new SerializedObject(m_Atom);
+                // Get our package manager
+                SerializedProperty packageManager = m_SerializedAtom.FindProperty("m_PackageManager");
+                // Find the nested packages.
+                SerializedProperty packagesList = packageManager.FindPropertyRelative ("m_Packages");
+                // Create labels;
+                m_PackageLabels = new GUIContent[packagesList.arraySize];
+                // Create names
+                for (int i = 0; i < packagesList.arraySize; i++)
                 {
-                    // Create a new serialized object
-                    SerializedObject package = new SerializedObject(current.objectReferenceValue);
-                    // Add it to our list
-                    m_Packages.Add(package);
-                    // Set the name
-                    // Add label
-                    m_PackageLabels[i] = new GUIContent(package.targetObject.name);
+                    var current = packagesList.GetArrayElementAtIndex(i);
+                    // Get the name
+                    m_PackageLabels[i] = new GUIContent(current.FindPropertyRelative("m_PackageName").stringValue);
                 }
+
             }
+        }
+
+        public void AssignAtom(Atom atom)
+        {
+            m_Atom = atom;
+            LoadSerializedValues();
         }
 
         private void SaveSerilaizedValues()
         {
-            // Make sure no children are null
-            for (int i = m_Packages.Count - 1; i >= 0; i--)
-            {
-                if (m_Packages[i] == null || m_Packages[i].targetObject == null)
-                {
-                    m_Packages.RemoveAt(i);
-                }
-                else if (m_Packages[i].targetObject != null)
-                {
-                    m_Packages[i].ApplyModifiedProperties();
-                }
-            }
-
-            if (m_PackageManager != null)
+            if (m_SerializedAtom != null)
             {
                 // Save the parent
-                m_PackageManager.ApplyModifiedProperties();
+                m_SerializedAtom.ApplyModifiedProperties();
             }
         }
 
@@ -110,20 +96,18 @@ namespace AtomPackageManager
 
         private void OnEnable()
         {
-            Atom.AddListener(this);
+            AssignAtom(FindObjectOfType<Atom>());
             LoadSerializedValues();
-        }
-
-        private void OnDisable()
-        {
-            Atom.RemoveListener(this);
         }
 
         private void OnGUI()
         {
-            LoadStyles();
-            DrawToolbar();
-            DrawContentArea();
+            if (m_SerializedAtom != null)
+            {
+                LoadStyles();
+                DrawToolbar();
+                DrawContentArea();
+            }
         }
 
         private void DrawToolbar()
@@ -252,10 +236,8 @@ namespace AtomPackageManager
                         if (GUILayout.Button("Add", EditorStyles.miniButtonLeft))
                         {
                             m_IsAddingPackage = false;
-                            string repositoryName = Path.GetFileNameWithoutExtension(m_NewPackageURL);
-                            GitCloneRequest request = new GitCloneRequest(repositoryName, m_NewPackageURL);
-                            Atom.Notify(Events.GIT_CLONE_REQUESTED, request);
-                            //m_NewPackageURL = string.Empty;
+                            string workingDirectory = Path.GetFileNameWithoutExtension(m_NewPackageURL);
+                            m_Atom.Clone(m_NewPackageURL, FilePaths.libraryPath + workingDirectory);
                             GUIUtility.hotControl = -1;
                             GUIUtility.keyboardControl = -1;
                         }
@@ -283,14 +265,11 @@ namespace AtomPackageManager
             {
                 m_PackageInfoScrollPosition = EditorGUILayout.BeginScrollView(m_PackageInfoScrollPosition);
                 {
-                    if (m_SelectedPackage > -1 && m_SelectedPackage < m_Packages.Count)
+                    SerializedProperty packages = m_SerializedAtom.FindProperty("m_PackageManager").FindPropertyRelative("m_Packages");
+
+                    if (m_SelectedPackage > -1 && m_SelectedPackage < packages.arraySize)
                     {
-                        SerializedProperty iterator = m_Packages[m_SelectedPackage].GetIterator();
-                        iterator.Next(true);
-                        while (iterator.NextVisible(false))
-                        {
-                            EditorGUILayout.PropertyField(iterator, true);
-                        }
+                        EditorGUILayout.PropertyField(packages.GetArrayElementAtIndex(m_SelectedPackage), true);
                     }
                     else
                     {
@@ -303,29 +282,17 @@ namespace AtomPackageManager
                 {
                     if (GUILayout.Button(Labels.packageEditorSaveButton))
                     {
-                        SaveSerilaizedValues();
+
                     }
 
                     if (GUILayout.Button(Labels.packageCompileButton))
                     {
-                        // Get the current
-                        SerializedObject current = m_Packages[m_SelectedPackage];
-
-                        // Get the Package
-                        AtomPackage package = current.targetObject as AtomPackage;
-
-                        if (package == null)
-                        {
-                            Atom.Notify(Events.ERROR_PACKING_WAS_NULL, "The package the current index was null");
-                        }
-                        else
-                        {
-                            Atom.Notify(Events.COMPILE_PACKAGE_REQUEST, package);
-                        }
+                        OnCompilePackageButtonPressed();
                     }
 
                     if (GUILayout.Button(Labels.packageEditorRemoveButton))
                     {
+                        OnRemovePackageButtonPressed(); 
                     }
                 }
 
@@ -335,23 +302,29 @@ namespace AtomPackageManager
             GUILayout.EndArea();
         }
 
-        public void OnPackageAdded(AtomPackage package)
+        private void OnSavePackageButtonPressed()
         {
-
+            // Save to disk
+            SaveSerilaizedValues();
+            // Apply Import Settings
+           
         }
 
-        public void OnPackageRemoved()
+        private void OnCompilePackageButtonPressed()
         {
+            // Get the current
+            m_SerializedAtom.ApplyModifiedProperties();
 
+            // Get the Package
+            AtomPackage package = m_Atom.packageManager.packages[m_SelectedPackage];
+
+            m_Atom.CompilePackage(package);
         }
+        
 
-        public void OnNotify(int eventCode, object context)
+        private void OnRemovePackageButtonPressed()
         {
-            if (eventCode == Events.ON_PACKAGE_ADDED)
-            {
-                LoadSerializedValues();
-                Repaint();
-            }
+
         }
     }
 }

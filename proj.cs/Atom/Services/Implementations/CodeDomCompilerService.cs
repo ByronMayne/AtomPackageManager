@@ -4,15 +4,36 @@ using Microsoft.CSharp;
 using System.CodeDom.Compiler;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using UnityEditor;
 using UnityEngine;
+using System;
 
 namespace AtomPackageManager.Services
 {
-    public class CodeDomCompilerService : Object, IEventListener
+    [System.Serializable]
+    public class CodeDomCompilerService : ICompilerService
     {
-        private void CompileAtomPackage(AtomPackage package)
+        /// <summary>
+        /// The result of our compiling.
+        /// </summary>
+        private CompilerResults m_CompileResults;
+
+        /// <summary>
+        /// Returns if the compile was successful or not. 
+        /// </summary>
+        public bool wasSuccessful
+        {
+            get
+            {
+                return !m_CompileResults.Errors.HasErrors;
+            }
+        }
+
+        /// <summary>
+        /// Takes an atom package and then compiles it to disk.
+        /// </summary>
+        /// <param name="package"></param>
+        public void CompilePackage(AtomPackage package, OnCompileCompleteDelegate onComplete)
         {
             // Loop over all assemblies
             foreach(AtomAssembly assembly in package.assemblies)
@@ -31,7 +52,7 @@ namespace AtomPackageManager.Services
                 for(int i = 0; i < scriptsToCompile.Length; i++)
                 {
                     // Build our path
-                    string rootPath = Atom.scriptImportLocation + package.name;
+                    string rootPath = Constants.SCRIPT_IMPORT_DIRECTORY + package.packageName;
                     //Debug.Log("Root: " + rootPath);
                     // Add the local script path
                     string scriptPath = rootPath + assembly.compiledScripts[i];
@@ -52,14 +73,14 @@ namespace AtomPackageManager.Services
                 parameters.GenerateExecutable = false;
                 // Where we are outputting
                 parameters.OutputAssembly = assembly.systemAssetPath + assembly.assemblyName + ".dll";
-                // If we should be dubug symbols
+                // If we should be debug symbols
                 parameters.IncludeDebugInformation = true; // TODO an option
                 // We want UnityEngine
                 parameters.ReferencedAssemblies.Add(GetAssemblyLocation<MonoBehaviour>());
                 // and System
-                parameters.ReferencedAssemblies.Add(GetAssemblyLocation<System.Action>());
+                parameters.ReferencedAssemblies.Add(GetAssemblyLocation<Action>());
                 // And the editor
-                parameters.ReferencedAssemblies.Add(GetAssemblyLocation<UnityEditor.Editor>());
+                parameters.ReferencedAssemblies.Add(GetAssemblyLocation<Editor>());
                 // We don't want to load in memory
                 parameters.GenerateInMemory = false;
                 // Set our warning level
@@ -67,19 +88,31 @@ namespace AtomPackageManager.Services
                 // And if we should treat warnings as errors
                 parameters.TreatWarningsAsErrors = false;
                 // Create a new results object
-                CompilerResults compileResults = codeProvider.CompileAssemblyFromFile(parameters, scriptsToCompile);
-                // Print our errors.
-                compileResults.Errors.Cast<CompilerError>().ToList().ForEach(error => UnityEngine.Debug.LogError(error.ErrorText));
+                m_CompileResults = codeProvider.CompileAssemblyFromFile(parameters, scriptsToCompile);
             }
-            // Loop over all assemblies
-            foreach (AtomAssembly assembly in package.assemblies)
+
+            // Fire our callback
+            if (onComplete != null)
             {
-                // Force import things
-                AssetDatabase.ImportAsset(assembly.unityAssetPath);
-                // Send our on complete event
-                Atom.Notify(Events.COMPILE_COMPLETE, assembly.systemAssetPath);
+                onComplete(this, package);
             }
-            AssetDatabase.Refresh();
+
+        }
+
+        /// <summary>
+        /// Creates a clone of this object.
+        /// </summary>
+        public ICompilerService CreateCopy()
+        {
+            return MemberwiseClone() as ICompilerService;
+        }
+
+        /// <summary>
+        /// Returns back all the errors (if any) from our compiling. 
+        /// </summary>
+        public CompilerErrorCollection GetErrors()
+        {
+            return m_CompileResults.Errors;
         }
 
         /// <summary>
@@ -90,25 +123,6 @@ namespace AtomPackageManager.Services
         private string GetAssemblyLocation<T>()
         {
             return typeof(T).Assembly.Location;
-        }
-
-
-        void IEventListener.OnNotify(int eventCode, object context)
-        {
-            if(eventCode == Events.COMPILE_PACKAGE_REQUEST)
-            {
-                // Cast our type
-                AtomPackage package = context as AtomPackage;
-                // Handle errors
-                if(package != null)
-                {
-                    CompileAtomPackage(package);
-                }
-                else
-                {
-                    Atom.Notify(Events.ERROR_INVALID_CAST_FOR_COMPILER, "The cast failed for the CodeDomCompilerService as it is not a AtomPackage");
-                }
-            }
         }
     }
 }

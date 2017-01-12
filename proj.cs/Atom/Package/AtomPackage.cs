@@ -1,12 +1,11 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Xml.Serialization;
 using UnityEngine;
 
 namespace AtomPackageManager.Packages
 {
-    [Serializable]
-    public class AtomPackage : ScriptableObject
+    [System.Serializable]
+    public class AtomPackage
     {
         [SerializeField]
         private string m_PackageName = "New Package";

@@ -7,10 +7,11 @@ using System.Xml.Serialization;
 public class PluginPlatforms
 {
     [SerializeField]
-    public bool EditorCompatible = true;
+    public bool editorCompatible = true;
 
 	[SerializeField]
-    public bool AnyPlatformCompatible = true;
+    public bool anyPlatformCompatible = true;
+
   
 	[SerializeField]
 	public bool StandaloneOSXUniversalCompatible = true;
@@ -84,130 +85,153 @@ public class PluginPlatforms
 	public bool ApplyToImporter(PluginImporter importer)
     {
 		bool hadChanges = false;
-		if(importer.GetCompatibleWithEditor() != EditorCompatible)
+		if(importer.GetCompatibleWithEditor() != editorCompatible)
         {
-            importer.SetCompatibleWithEditor(EditorCompatible);
+            importer.SetCompatibleWithEditor(editorCompatible);
             hadChanges = true;
         }
-		if(importer.GetCompatibleWithAnyPlatform() != AnyPlatformCompatible)
+		if(importer.GetCompatibleWithAnyPlatform() != anyPlatformCompatible)
         {
-            importer.SetCompatibleWithAnyPlatform(AnyPlatformCompatible);
+            importer.SetCompatibleWithAnyPlatform(anyPlatformCompatible);
             hadChanges = true;
         }
 		if(importer.GetCompatibleWithPlatform(BuildTarget.StandaloneOSXUniversal) != StandaloneOSXUniversalCompatible)
         {
             importer.SetCompatibleWithPlatform(BuildTarget.StandaloneOSXUniversal, StandaloneOSXUniversalCompatible);
             hadChanges = true;
+			Debug.Log("Change: " + "StandaloneOSXUniversal");
         }
 		if(importer.GetCompatibleWithPlatform(BuildTarget.StandaloneOSXIntel) != StandaloneOSXIntelCompatible)
         {
             importer.SetCompatibleWithPlatform(BuildTarget.StandaloneOSXIntel, StandaloneOSXIntelCompatible);
             hadChanges = true;
+			Debug.Log("Change: " + "StandaloneOSXIntel");
         }
 		if(importer.GetCompatibleWithPlatform(BuildTarget.StandaloneWindows) != StandaloneWindowsCompatible)
         {
             importer.SetCompatibleWithPlatform(BuildTarget.StandaloneWindows, StandaloneWindowsCompatible);
             hadChanges = true;
+			Debug.Log("Change: " + "StandaloneWindows");
         }
 		if(importer.GetCompatibleWithPlatform(BuildTarget.iOS) != iOSCompatible)
         {
             importer.SetCompatibleWithPlatform(BuildTarget.iOS, iOSCompatible);
             hadChanges = true;
+			Debug.Log("Change: " + "iOS");
         }
 		if(importer.GetCompatibleWithPlatform(BuildTarget.PS3) != PS3Compatible)
         {
             importer.SetCompatibleWithPlatform(BuildTarget.PS3, PS3Compatible);
             hadChanges = true;
+			Debug.Log("Change: " + "PS3");
         }
 		if(importer.GetCompatibleWithPlatform(BuildTarget.XBOX360) != XBOX360Compatible)
         {
             importer.SetCompatibleWithPlatform(BuildTarget.XBOX360, XBOX360Compatible);
             hadChanges = true;
+			Debug.Log("Change: " + "XBOX360");
         }
 		if(importer.GetCompatibleWithPlatform(BuildTarget.Android) != AndroidCompatible)
         {
             importer.SetCompatibleWithPlatform(BuildTarget.Android, AndroidCompatible);
             hadChanges = true;
+			Debug.Log("Change: " + "Android");
         }
 		if(importer.GetCompatibleWithPlatform(BuildTarget.StandaloneLinux) != StandaloneLinuxCompatible)
         {
             importer.SetCompatibleWithPlatform(BuildTarget.StandaloneLinux, StandaloneLinuxCompatible);
             hadChanges = true;
+			Debug.Log("Change: " + "StandaloneLinux");
         }
 		if(importer.GetCompatibleWithPlatform(BuildTarget.StandaloneWindows64) != StandaloneWindows64Compatible)
         {
             importer.SetCompatibleWithPlatform(BuildTarget.StandaloneWindows64, StandaloneWindows64Compatible);
             hadChanges = true;
+			Debug.Log("Change: " + "StandaloneWindows64");
         }
 		if(importer.GetCompatibleWithPlatform(BuildTarget.WebGL) != WebGLCompatible)
         {
             importer.SetCompatibleWithPlatform(BuildTarget.WebGL, WebGLCompatible);
             hadChanges = true;
+			Debug.Log("Change: " + "WebGL");
         }
 		if(importer.GetCompatibleWithPlatform(BuildTarget.WSAPlayer) != WSAPlayerCompatible)
         {
             importer.SetCompatibleWithPlatform(BuildTarget.WSAPlayer, WSAPlayerCompatible);
             hadChanges = true;
+			Debug.Log("Change: " + "WSAPlayer");
         }
 		if(importer.GetCompatibleWithPlatform(BuildTarget.StandaloneLinux64) != StandaloneLinux64Compatible)
         {
             importer.SetCompatibleWithPlatform(BuildTarget.StandaloneLinux64, StandaloneLinux64Compatible);
             hadChanges = true;
+			Debug.Log("Change: " + "StandaloneLinux64");
         }
 		if(importer.GetCompatibleWithPlatform(BuildTarget.StandaloneLinuxUniversal) != StandaloneLinuxUniversalCompatible)
         {
             importer.SetCompatibleWithPlatform(BuildTarget.StandaloneLinuxUniversal, StandaloneLinuxUniversalCompatible);
             hadChanges = true;
+			Debug.Log("Change: " + "StandaloneLinuxUniversal");
         }
 		if(importer.GetCompatibleWithPlatform(BuildTarget.StandaloneOSXIntel64) != StandaloneOSXIntel64Compatible)
         {
             importer.SetCompatibleWithPlatform(BuildTarget.StandaloneOSXIntel64, StandaloneOSXIntel64Compatible);
             hadChanges = true;
+			Debug.Log("Change: " + "StandaloneOSXIntel64");
         }
 		if(importer.GetCompatibleWithPlatform(BuildTarget.Tizen) != TizenCompatible)
         {
             importer.SetCompatibleWithPlatform(BuildTarget.Tizen, TizenCompatible);
             hadChanges = true;
+			Debug.Log("Change: " + "Tizen");
         }
 		if(importer.GetCompatibleWithPlatform(BuildTarget.PSP2) != PSP2Compatible)
         {
             importer.SetCompatibleWithPlatform(BuildTarget.PSP2, PSP2Compatible);
             hadChanges = true;
+			Debug.Log("Change: " + "PSP2");
         }
 		if(importer.GetCompatibleWithPlatform(BuildTarget.PS4) != PS4Compatible)
         {
             importer.SetCompatibleWithPlatform(BuildTarget.PS4, PS4Compatible);
             hadChanges = true;
+			Debug.Log("Change: " + "PS4");
         }
 		if(importer.GetCompatibleWithPlatform(BuildTarget.PSM) != PSMCompatible)
         {
             importer.SetCompatibleWithPlatform(BuildTarget.PSM, PSMCompatible);
             hadChanges = true;
+			Debug.Log("Change: " + "PSM");
         }
 		if(importer.GetCompatibleWithPlatform(BuildTarget.XboxOne) != XboxOneCompatible)
         {
             importer.SetCompatibleWithPlatform(BuildTarget.XboxOne, XboxOneCompatible);
             hadChanges = true;
+			Debug.Log("Change: " + "XboxOne");
         }
 		if(importer.GetCompatibleWithPlatform(BuildTarget.SamsungTV) != SamsungTVCompatible)
         {
             importer.SetCompatibleWithPlatform(BuildTarget.SamsungTV, SamsungTVCompatible);
             hadChanges = true;
+			Debug.Log("Change: " + "SamsungTV");
         }
 		if(importer.GetCompatibleWithPlatform(BuildTarget.Nintendo3DS) != Nintendo3DSCompatible)
         {
             importer.SetCompatibleWithPlatform(BuildTarget.Nintendo3DS, Nintendo3DSCompatible);
             hadChanges = true;
+			Debug.Log("Change: " + "Nintendo3DS");
         }
 		if(importer.GetCompatibleWithPlatform(BuildTarget.WiiU) != WiiUCompatible)
         {
             importer.SetCompatibleWithPlatform(BuildTarget.WiiU, WiiUCompatible);
             hadChanges = true;
+			Debug.Log("Change: " + "WiiU");
         }
 		if(importer.GetCompatibleWithPlatform(BuildTarget.tvOS) != tvOSCompatible)
         {
             importer.SetCompatibleWithPlatform(BuildTarget.tvOS, tvOSCompatible);
             hadChanges = true;
+			Debug.Log("Change: " + "tvOS");
         }
 		return hadChanges;
     }

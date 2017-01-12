@@ -7,88 +7,90 @@ using System.IO;
 
 namespace AtomPackageManager
 {
-    public struct SerilizationRequest<T>
+    public struct SerilizationRequest
     {
-		private string m_SerializedData;
-		private T m_Target;
+        private string m_SerializedData;
+        private object m_Target;
+        private string m_FilePath;
 
-		public Type type
-		{
-			get { return typeof(T); }
-		}
 
-		public string serializedData
-		{
-			get
-			{
-				return m_SerializedData; 
-			}
-		}
+        public object target
+        {
+            get { return m_Target; }
+        }
 
-		public SerilizationRequest(T target)
-		{
-			m_Target = target;
-			m_SerializedData = string.Empty;
-		}
+        public string filePath
+        {
+            get { return m_FilePath; }
+        }
 
-		public void SetResult(string serializedData)
-		{
-			m_SerializedData = serializedData;
-		}
+        public SerilizationRequest(object target, string filePath)
+        {
+            m_Target = target;
+            m_SerializedData = string.Empty;
+            m_FilePath = filePath;
+        }
+
+        public void SetResult(string serializedData)
+        {
+            m_SerializedData = serializedData;
+        }
     }
 
-	public struct DeserializeRequest<T>
-	{
-		private T m_Result;
-		private string m_SerializedData;
+    public struct DeserializeRequest
+    {
+        private object m_Result;
+        private Type m_Type;
+        private string m_SerializedData;
 
-		public Type type
-		{
-			get { return typeof(T); }
-		}
+        public object result
+        {
+            get
+            {
+                return m_Result; 
+            }
+        }
 
-		public T result
-		{
-			get
-			{
-				return m_Result; 
-			}
-		}
+        public Type type
+        {
+            get { return m_Type; }
+        }
 
-		public string SerializedData
-		{
-			get
-			{
-				return m_SerializedData; 
-			}
-		}
+        public string SerializedData
+        {
+            get
+            {
+                return m_SerializedData; 
+            }
+        }
 
-		public DeserializeRequest(string serializedData)
-		{
-			m_SerializedData = serializedData;
-			m_Result = default(T);
-		}
+        public DeserializeRequest(string serializedData, Type type)
+        {
+            m_SerializedData = serializedData;
+            m_Result = null;
+            m_Type = type;
+        }
 
-		public void SetResult(T result)
-		{
-			m_Result = result;
-		}
+        public void SetResult(object result)
+        {
+            m_Result = result;
+        }
 
-		public static DeserializeRequest<T> FromString(string serializedData)
-		{
-			DeserializeRequest<T> request = new DeserializeRequest<T>(serializedData);
-			return request; 
-		}
+        public static DeserializeRequest FromString(string serializedData, Type type)
+        {
+            DeserializeRequest request = new DeserializeRequest(serializedData, type);
+            return request; 
+        }
 
-		/// <summary>
-		/// Creates a new Deserializion request but reads the data from a file on disk 
-		/// instead of the data directly. 
-		/// </summary>
-		public static DeserializeRequest<T> FromFile(string filePath)
-		{
-			string serilizedData = File.ReadAllText(filePath);
-			DeserializeRequest<T> request = new DeserializeRequest<T>(serilizedData);
-			return request; 
-		}
-	}
+        /// <summary>
+        /// Creates a new Deserializion request but reads the data from a file on disk 
+        /// instead of the data directly. 
+        /// </summary>
+        public static DeserializeRequest FromFile(string filePath, Type type)
+        {
+            string serilizedData = File.ReadAllText(filePath);
+            DeserializeRequest request = new DeserializeRequest(serilizedData, type);
+            return request; 
+        }
+    }
 }

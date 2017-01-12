@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using UnityEngine;
 
 namespace AtomPackageManager
 {
@@ -16,11 +17,17 @@ namespace AtomPackageManager
         /// The location on disk starting form the root project path where we
         /// save the package manager on disk.
         /// </summary>
-        public const string PACKAGE_MANAGER_LOCATION = "../ProjectSettings/PackageManager.asset";
+        public const string PACKAGE_MANAGER_LOCATION = "/ProjectSettings/PackageManager.asset";
 
         /// <summary>
         /// The location on disk where we store the repositories for our Atom packages.
         /// </summary>
-        public const string SCRIPT_IMPORT_DIRECTORY = "/Library/Atom/";
+        public static string SCRIPT_IMPORT_DIRECTORY
+        {
+            get
+            {
+                return Application.dataPath.Replace("/Assets", "/Library/Atom/");
+            }
+        }
     }
 }

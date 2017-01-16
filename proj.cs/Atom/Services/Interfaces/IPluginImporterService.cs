@@ -5,7 +5,7 @@ namespace AtomPackageManager.Services
 {
     public interface IPluginImporterService
     {
-        void ApplyAtomImporterSettings(PluginImporter importer, AtomAssembly assembly);
+        void ApplyAtomImporterSettings(AtomAssembly assembly);
 
         /// Creates a shallow copy of this object
         /// </summary>

@@ -14,10 +14,11 @@ namespace AtomPackageManager
         [SerializeField]
         private PackageManager m_PackageManager;
 
-        // Our Default Tempaltes
+        // Our Default Templates
         private ICompilerService       m_ICompilerServiceTemplate        = new CodeDomCompilerService();
         private ISourceControlService  m_ISourceControlServiceTemplate   = new GitSourceControlService();
         private IPluginImporterService m_IPluginImporterServiceTemplate  = new PluginImporterService();
+        private ISolutionModifier      m_ISolutionModifierTemplate       = new SolutionModifier();
 
         public PackageManager packageManager
         {
@@ -50,7 +51,16 @@ namespace AtomPackageManager
 
             for(int i = 0; i < importRequests.Length; i++)
             {
-                packageManager.ValidatePluginOwnership(importRequests[i].importer, ApplyAtomImporterSettings);
+                // Get the full Asset Path
+                string assetPath = importRequests[i].importer.assetPath;
+                // Try to get our package
+                AtomAssembly assembly = packageManager.GetAssemblyByPath(assetPath);
+                // If it's not null we want to reimport it
+                if(assembly != null)
+                {
+                    ApplyAtomImporterSettings(assembly);
+                }
+                // Clean up or floating requests.
                 DestroyImmediate(importRequests[i]);
             }
 
@@ -61,6 +71,9 @@ namespace AtomPackageManager
             {
                 editor.AssignAtom(this);
             }
+
+            // Append our solution
+            BuildAtomSolution();
         }
 
 
@@ -90,10 +103,17 @@ namespace AtomPackageManager
             }
         }
 
-        public void ApplyAtomImporterSettings(PluginImporter importer, AtomAssembly assembly)
+        public void BuildAtomSolution()
+        {
+            ISolutionModifier solutionModifier = m_ISolutionModifierTemplate.CreateCopy();
+            solutionModifier.ModifySolution(Constants.SOLUTION_PATH, packageManager);
+            
+        }
+ 
+        public void ApplyAtomImporterSettings(AtomAssembly assembly)
         {
             IPluginImporterService pluginImportSettings = m_IPluginImporterServiceTemplate.CreateCopy();
-            pluginImportSettings.ApplyAtomImporterSettings(importer, assembly);
+            pluginImportSettings.ApplyAtomImporterSettings(assembly);
         }
 
         public void Clone(string repositoryURL, string workingDirectory)

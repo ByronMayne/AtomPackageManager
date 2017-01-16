@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using UnityEditor;
 using UnityEngine;
 
 namespace AtomPackageManager
@@ -20,6 +21,11 @@ namespace AtomPackageManager
         public const string PACKAGE_MANAGER_LOCATION = "/ProjectSettings/PackageManager.asset";
 
         /// <summary>
+        /// The extension of a solution file. 
+        /// </summary>
+        public const string SOLUTION_EXTENSION = ".sln";
+
+        /// <summary>
         /// The location on disk where we store the repositories for our Atom packages.
         /// </summary>
         public static string SCRIPT_IMPORT_DIRECTORY
@@ -27,6 +33,17 @@ namespace AtomPackageManager
             get
             {
                 return Application.dataPath.Replace("/Assets", "/Library/Atom/");
+            }
+        }
+
+        /// <summary>
+        /// Returns the full path to this projects solution.
+        /// </summary>
+        public static string SOLUTION_PATH
+        {
+            get
+            {
+                return Application.dataPath.Replace("/Assets", "/" + "proj.unity" + SOLUTION_EXTENSION);
             }
         }
     }

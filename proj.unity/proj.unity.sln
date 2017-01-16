@@ -1,12 +1,26 @@
-﻿
+
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 2015
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "proj.unity", "proj.unity.csproj", "{2D350868-AE14-F282-9A6C-5E2CCDA3DBE2}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "proj.unity.Editor", "proj.unity.Editor.csproj", "{D1FCA826-4A4E-B4B6-96E5-0EABBFF6B8AF}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "UnityIO", "D:/Repositories/AtomPackageManager/proj.unity/Library/Atom/UnityIO/proj.cs/UnityIO.csproj", "991cd532-bf36-488c-8102-b85a03964894"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
 		Release|Any CPU = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{2D350868-AE14-F282-9A6C-5E2CCDA3DBE2}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{2D350868-AE14-F282-9A6C-5E2CCDA3DBE2}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{2D350868-AE14-F282-9A6C-5E2CCDA3DBE2}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{2D350868-AE14-F282-9A6C-5E2CCDA3DBE2}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D1FCA826-4A4E-B4B6-96E5-0EABBFF6B8AF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D1FCA826-4A4E-B4B6-96E5-0EABBFF6B8AF}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D1FCA826-4A4E-B4B6-96E5-0EABBFF6B8AF}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D1FCA826-4A4E-B4B6-96E5-0EABBFF6B8AF}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

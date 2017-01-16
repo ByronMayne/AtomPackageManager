@@ -11,10 +11,13 @@ namespace AtomPackageManager.Packages
         private string m_PackageName = "New Package";
 
         [SerializeField]
-        private string m_Version = "1.0.0.0";
+        private string m_Version = string.Empty;
 
         [SerializeField]
-        private string m_ContentURL = "Not Set";
+        private string m_ContentURL = string.Empty;
+
+        [SerializeField]
+        private string m_SolutionPath = string.Empty;
 
         [SerializeField]
         private List<AtomAssembly> m_Assemblies = new List<AtomAssembly>();
@@ -35,6 +38,16 @@ namespace AtomPackageManager.Packages
         {
             get { return m_Version; }
             set { m_Version = value; }
+        }
+
+        /// <summary>
+        /// The path to the solution that should be included to the Unity project. This
+        /// path is relative from the root of the repo.
+        /// </summary>
+        public string solutionPath
+        {
+            get { return m_SolutionPath; }
+            set { m_SolutionPath = value; }
         }
 
         /// <summary>

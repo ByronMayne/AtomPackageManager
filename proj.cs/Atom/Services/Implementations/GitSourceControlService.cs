@@ -5,6 +5,7 @@ using UnityEditor;
 using UnityEngine;
 using Process = System.Diagnostics.Process;
 using ProcessStartInfo = System.Diagnostics.ProcessStartInfo;
+using UnityEngine.Assertions;
 
 namespace AtomPackageManager.Services
 {
@@ -48,12 +49,31 @@ namespace AtomPackageManager.Services
             }
         }
 
-        public void Clone(string respiratoryURL, string workingDirectory, OnCloneCompletedDelegate onComplete)
+        public void Clone(string repositoryURL, string workingDirectory, OnCloneCompletedDelegate onComplete)
         {
+            if(string.IsNullOrEmpty(repositoryURL))
+            {
+                throw new System.ArgumentNullException("respiratoryURL", "You must send a valid repository url to make a clone request, yours was null or empty");
+            }
+
+            if (string.IsNullOrEmpty(workingDirectory))
+            {
+                throw new System.ArgumentNullException("workingDirectory", "You must set a valid working directory, yours was null or empty");
+            }
+
+            if(!repositoryURL.EndsWith(".git"))
+            {
+                throw new System.ArgumentException("repositoryURL", "Invalid git url all must end with .git");
+            }
+
+            m_RepositoryURL = repositoryURL;
+            m_WorkingDirectory = workingDirectory;
+
+            m_WasSuccessful = true;
             // Start a new thread process.
             ThreadStart threadStart = delegate
             {
-                CloneThreadProcess(respiratoryURL, workingDirectory, onComplete);
+                CloneThreadProcess(onComplete);
             };
 
             // Create the thread
@@ -67,7 +87,7 @@ namespace AtomPackageManager.Services
         /// </summary>
         /// <param name="gitURL">The URL of the git repository</param>
         /// <param name="repositoryLocation">The location on disk you want to clone it too</param>
-        private void CloneThreadProcess(string respiratoryURL, string workingDirectory, OnCloneCompletedDelegate onComplete)
+        private void CloneThreadProcess(OnCloneCompletedDelegate onComplete)
         {
             // Create a folder if it does not exist. 
             if (!Directory.Exists(workingDirectory))
@@ -93,7 +113,9 @@ namespace AtomPackageManager.Services
                 processInfo.UseShellExecute = true;
             }
             // Set our arguments
-            processInfo.Arguments += " git clone -o master " + respiratoryURL + " " + workingDirectory;
+            processInfo.Arguments += " git clone -o master " + repositoryURL + " " + workingDirectory;
+
+            Debug.Log("Cloning: " + processInfo.Arguments);
             // We don't want to show a window.
             processInfo.CreateNoWindow = false;
 

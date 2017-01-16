@@ -1,9 +1,9 @@
-﻿
+
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 2015
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Atom", "Atom.csproj", "{B4BD9761-6541-F794-6624-611DC07ECA12}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Atom.Editor", "Atom.Editor.csproj", "{0C395005-6B36-C78F-26BE-BDDFF5829BB1}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "UnityIO", "D:\Repositories\UnityIO\proj.cs\UnityIO.csproj", "{94866D2A-2BC6-5D70-D222-4961DD8BF5C5}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

@@ -1,8 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-
 namespace AtomPackageManager.Services
 {
     public delegate void OnCloneCompletedDelegate(ISourceControlService service);

@@ -29,7 +29,7 @@ namespace AtomPackageManager
         private Vector2 m_PackageInfoScrollPosition;
         private Vector2 m_PackageListScrollPosition;
         private int m_SelectedPackage = -1;
-
+        private SerializedProperty m_Packages;
 
         // Packages
         private bool m_IsAddingPackage = false;
@@ -46,11 +46,11 @@ namespace AtomPackageManager
             if (m_Atom != null)
             {
                 // Grab the manager
-                m_SerializedAtom =  new SerializedObject(m_Atom);
+                m_SerializedAtom = new SerializedObject(m_Atom);
                 // Get our package manager
                 SerializedProperty packageManager = m_SerializedAtom.FindProperty("m_PackageManager");
                 // Find the nested packages.
-                SerializedProperty packagesList = packageManager.FindPropertyRelative ("m_Packages");
+                SerializedProperty packagesList = packageManager.FindPropertyRelative("m_Packages");
                 // Create labels;
                 m_PackageLabels = new GUIContent[packagesList.arraySize];
                 // Create names
@@ -114,6 +114,19 @@ namespace AtomPackageManager
         {
             EditorGUILayout.BeginHorizontal(EditorStyles.toolbar, GUILayout.ExpandWidth(true));
             {
+                Rect buttonRect = GUILayoutUtility.GetRect(Labels.menuButton, EditorStyles.toolbarButton);
+
+                if(GUI.Button(buttonRect, Labels.menuButton, EditorStyles.toolbarButton))
+                {
+                    GenericMenu atomMenu = new GenericMenu();;
+                    atomMenu.AddItem(Labels.addExistingPackageButton, false, OnAddExisitingPackageButtonPressed);
+                    atomMenu.AddItem(Labels.clonePackageButton, false, OnCloneNewPackagePressed);
+                    atomMenu.AddItem(Labels.createNewPackageButton, false, OnCreateNewPackagePressed);
+                    atomMenu.AddSeparator(string.Empty);
+                    atomMenu.AddItem(Labels.closeAtomButton, false, OnQuitPressed);
+                    atomMenu.DropDown(buttonRect);
+                }
+
                 GUILayout.FlexibleSpace();
 
                 GUILayout.BeginHorizontal(EditorStyles.toolbar);
@@ -131,6 +144,38 @@ namespace AtomPackageManager
 
         }
 
+        /// <summary>
+        /// Invoked when the user uses the menu button to say they want to add
+        /// a project that is already on disk.
+        /// </summary>
+        private void OnAddExisitingPackageButtonPressed()
+        {
+            // Get our file path. 
+            string atomFilePath = EditorUtility.OpenFilePanel("Atom File", Application.dataPath, "atom");
+            // Check if the path is null if the user cancels the path would be empty.
+            if(!string.IsNullOrEmpty(atomFilePath))
+            {
+                // Try to load the file
+                m_Atom.packageManager.LoadAtomFileAtPath(atomFilePath);
+            }
+            SaveSerilaizedValues();
+            LoadSerializedValues();
+        }
+
+        private void OnCloneNewPackagePressed()
+        {
+
+        }
+
+        private void OnCreateNewPackagePressed()
+        {
+
+        }
+
+        private void OnQuitPressed()
+        {
+        }
+
         private void DrawContentArea()
         {
             m_WorkingContentRect = new Rect(0, EditorGUIUtility.singleLineHeight, position.width, 0.0f);
@@ -141,8 +186,8 @@ namespace AtomPackageManager
             packageInfoRect.x += m_PackageListWidth;
             packageInfoRect.width -= m_PackageListWidth;
 
-            DrawPackageList(packageListRect);
-            DrawPackageInfo(packageInfoRect);
+            DrawLeftPanel(packageListRect);
+            DrawContentArea(packageInfoRect);
             HandleDrag(packageListRect);
         }
 
@@ -195,15 +240,35 @@ namespace AtomPackageManager
             }
         }
 
-        private void DrawPackageList(Rect packageListRect)
+        private void DrawLeftPanel(Rect packageListRect)
         {
+            if(m_Packages == null)
+            {
+                return;
+            }
+
             GUI.Box(packageListRect, GUIContent.none);
 
             GUILayout.BeginArea(packageListRect);
             {
                 m_PackageListScrollPosition = EditorGUILayout.BeginScrollView(m_PackageListScrollPosition);
                 {
-                    m_SelectedPackage = GUILayout.SelectionGrid(m_SelectedPackage, m_PackageLabels, 1, GUILayout.Height(16 * m_PackageLabels.Length));
+                    for(int i = 0; i < m_Packages.arraySize; i++)
+                    {
+                Debug.Log("Null?");
+                        SerializedProperty current = m_Packages.GetArrayElementAtIndex(i);
+                        if(current != null)
+                        {
+                            if (GUILayout.Button(current.name))
+                            {
+                                m_SelectedPackage = i;
+                            }
+                        }
+                        else
+                        {
+                            m_Packages.DeleteArrayElementAtIndex(i);
+                        }
+                    }
                 }
                 EditorGUILayout.EndScrollView();
 
@@ -259,7 +324,7 @@ namespace AtomPackageManager
             GUILayout.EndArea();
         }
 
-        private void DrawPackageInfo(Rect packageInfoRect)
+        private void DrawContentArea(Rect packageInfoRect)
         {
             GUILayout.BeginArea(packageInfoRect);
             {
@@ -292,7 +357,7 @@ namespace AtomPackageManager
 
                     if (GUILayout.Button(Labels.packageEditorRemoveButton))
                     {
-                        OnRemovePackageButtonPressed(); 
+                        OnRemovePackageButtonPressed();
                     }
                 }
 
@@ -304,10 +369,14 @@ namespace AtomPackageManager
 
         private void OnSavePackageButtonPressed()
         {
+            // Get the Package
+            AtomPackage package = m_Atom.packageManager.packages[m_SelectedPackage];
+
             // Save to disk
             SaveSerilaizedValues();
             // Apply Import Settings
-           
+            m_Atom.ApplyAtomImporterSettings(package.assemblies[0]);
+
         }
 
         private void OnCompilePackageButtonPressed()
@@ -320,11 +389,12 @@ namespace AtomPackageManager
 
             m_Atom.CompilePackage(package);
         }
-        
 
         private void OnRemovePackageButtonPressed()
         {
-
+            m_Atom.packageManager.packages.RemoveAt(m_SelectedPackage);
+            GUIUtility.ExitGUI();
+            LoadSerializedValues();
         }
     }
 }

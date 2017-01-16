@@ -7,13 +7,20 @@ namespace AtomPackageManager.Services
     [System.Serializable]
     public class PluginImporterService : IPluginImporterService
     {
-        public void ApplyAtomImporterSettings(PluginImporter importer, AtomAssembly assembly)
+        public void ApplyAtomImporterSettings(AtomAssembly assembly)
         {
-            bool hadChanges = assembly.supportedPlatforms.ApplyToImporter(importer);
+            // Get our importer at that path
+            PluginImporter importer = AssetImporter.GetAtPath(assembly.unityAssemblyPath) as PluginImporter;
 
-            if(hadChanges)
+            // If it's not null apply the settings
+            if(importer != null)
             {
-               importer.SaveAndReimport();
+                bool hadChanges = assembly.supportedPlatforms.ApplyToImporter(importer);
+
+                if (hadChanges)
+                {
+                    importer.SaveAndReimport();
+                }
             }
         }
 

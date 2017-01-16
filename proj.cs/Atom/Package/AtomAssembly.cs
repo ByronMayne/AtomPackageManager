@@ -45,6 +45,11 @@ namespace AtomPackageManager.Packages
 #endif
         }
 
+        public string unityAssemblyPath
+        {
+            get { return m_UnityAssetPath + assemblyName + ".dll"; }
+        }
+
         /// <summary>
         /// Gets the path from the root directory to
         /// where this assembly will be put on disk in

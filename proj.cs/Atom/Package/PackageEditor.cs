@@ -29,7 +29,6 @@ namespace AtomPackageManager
         private Vector2 m_PackageInfoScrollPosition;
         private Vector2 m_PackageListScrollPosition;
         private int m_SelectedPackage = -1;
-        private SerializedProperty m_Packages;
 
         // Packages
         private bool m_IsAddingPackage = false;
@@ -157,9 +156,9 @@ namespace AtomPackageManager
             {
                 // Try to load the file
                 m_Atom.packageManager.LoadAtomFileAtPath(atomFilePath);
+                Debug.Log("Added:" + m_Atom.packageManager.packages.Count);
             }
-            SaveSerilaizedValues();
-            LoadSerializedValues();
+            m_SerializedAtom.Update();
         }
 
         private void OnCloneNewPackagePressed()
@@ -242,7 +241,7 @@ namespace AtomPackageManager
 
         private void DrawLeftPanel(Rect packageListRect)
         {
-            if(m_Packages == null)
+            if(m_SerializedAtom == null)
             {
                 return;
             }
@@ -253,20 +252,25 @@ namespace AtomPackageManager
             {
                 m_PackageListScrollPosition = EditorGUILayout.BeginScrollView(m_PackageListScrollPosition);
                 {
-                    for(int i = 0; i < m_Packages.arraySize; i++)
+                    SerializedProperty packageManager = m_SerializedAtom.FindProperty("m_PackageManager");
+                    SerializedProperty packages = packageManager.FindPropertyRelative("m_Packages");
+
+                    for (int i = 0; i < packages.arraySize; i++)
                     {
-                Debug.Log("Null?");
-                        SerializedProperty current = m_Packages.GetArrayElementAtIndex(i);
+                        SerializedProperty current = packages.GetArrayElementAtIndex(i);
                         if(current != null)
                         {
-                            if (GUILayout.Button(current.name))
+
+                            SerializedProperty name = current.FindPropertyRelative("m_PackageName");
+
+                            if (GUILayout.Button(name.stringValue))
                             {
                                 m_SelectedPackage = i;
                             }
                         }
                         else
                         {
-                            m_Packages.DeleteArrayElementAtIndex(i);
+                            packages.DeleteArrayElementAtIndex(i);
                         }
                     }
                 }
@@ -275,51 +279,6 @@ namespace AtomPackageManager
                 GUILayout.FlexibleSpace();
 
                 GUILayout.Box(GUIContent.none, GUILayout.ExpandWidth(true), GUILayout.Height(3.0f));
-
-                if (!m_IsAddingPackage)
-                {
-                    GUILayout.BeginHorizontal();
-                    {
-
-                        if (GUILayout.Button(Labels.packageEditorAddButton, EditorStyles.miniButtonLeft))
-                        {
-                            m_IsAddingPackage = true;
-                        }
-
-                        if (GUILayout.Button(Labels.packageEditorRemoveButton, EditorStyles.miniButtonRight))
-                        {
-
-                        }
-                    }
-                    GUILayout.EndHorizontal();
-                }
-                else
-                {
-                    GUILayout.BeginHorizontal();
-                    {
-
-                        if (GUILayout.Button("Add", EditorStyles.miniButtonLeft))
-                        {
-                            m_IsAddingPackage = false;
-                            string workingDirectory = Path.GetFileNameWithoutExtension(m_NewPackageURL);
-                            m_Atom.Clone(m_NewPackageURL, FilePaths.libraryPath + workingDirectory);
-                            GUIUtility.hotControl = -1;
-                            GUIUtility.keyboardControl = -1;
-                        }
-
-                        if (GUILayout.Button("Cancel", EditorStyles.miniButtonRight))
-                        {
-                            m_IsAddingPackage = false;
-                            //m_NewPackageURL = string.Empty;
-                            GUIUtility.hotControl = -1;
-                            GUIUtility.keyboardControl = -1;
-                        }
-                    }
-                    GUILayout.EndHorizontal();
-                    GUILayout.Label("Package URL");
-                    m_NewPackageURL = EditorGUILayout.TextField(m_NewPackageURL);
-                }
-                GUILayout.Space(3.0f);
             }
             GUILayout.EndArea();
         }
@@ -393,8 +352,8 @@ namespace AtomPackageManager
         private void OnRemovePackageButtonPressed()
         {
             m_Atom.packageManager.packages.RemoveAt(m_SelectedPackage);
+            m_SerializedAtom.Update();
             GUIUtility.ExitGUI();
-            LoadSerializedValues();
         }
     }
 }

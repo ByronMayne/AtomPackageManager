@@ -33,7 +33,7 @@ namespace AtomPackageManager
         public void Save()
         {
             // Cast us to JSON
-            string json = JsonUtility.ToJson(this);
+            string json = JsonUtility.ToJson(this, true);
             // Save it to disk
             File.WriteAllText(FilePaths.packageManagerPath, json);
         }

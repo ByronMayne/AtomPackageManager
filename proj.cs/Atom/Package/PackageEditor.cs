@@ -28,7 +28,7 @@ namespace AtomPackageManager
 
         private Vector2 m_PackageInfoScrollPosition;
         private Vector2 m_PackageListScrollPosition;
-        private int m_SelectedPackage = -1;
+        private int m_PackageSelectionIndex = -1;
 
         // Packages
         private bool m_IsAddingPackage = false;
@@ -246,7 +246,7 @@ namespace AtomPackageManager
                 return;
             }
 
-            GUI.Box(packageListRect, GUIContent.none);
+            GUI.Box(packageListRect, GUIContent.none, (GUIStyle)"AnimationCurveEditorBackground");
 
             GUILayout.BeginArea(packageListRect);
             {
@@ -254,6 +254,29 @@ namespace AtomPackageManager
                 {
                     SerializedProperty packageManager = m_SerializedAtom.FindProperty("m_PackageManager");
                     SerializedProperty packages = packageManager.FindPropertyRelative("m_Packages");
+
+                    GUIStyle buttonStyle = new GUIStyle((GUIStyle)"RL Background");
+
+
+                    buttonStyle.fixedHeight = EditorGUIUtility.singleLineHeight * 2;
+                    buttonStyle.alignment = TextAnchor.MiddleLeft;
+                    buttonStyle.contentOffset = new Vector2(10, 0);
+                    buttonStyle.margin = new RectOffset(0, 0, 6, 0);
+
+                    buttonStyle.normal.textColor = Color.black;
+                    buttonStyle.onNormal.textColor = Color.grey;
+
+                    buttonStyle.active.textColor = Color.blue;
+                    buttonStyle.onActive.textColor = Color.red;
+
+                    buttonStyle.hover.textColor = Color.green;
+                    buttonStyle.onHover.textColor = Color.blue;
+
+                    buttonStyle.focused.textColor = Color.blue;
+                    buttonStyle.onFocused.textColor = Color.green;
+
+
+                    buttonStyle.fontStyle = FontStyle.Bold;
 
                     for (int i = 0; i < packages.arraySize; i++)
                     {
@@ -263,9 +286,21 @@ namespace AtomPackageManager
 
                             SerializedProperty name = current.FindPropertyRelative("m_PackageName");
 
-                            if (GUILayout.Button(name.stringValue))
+                            GUIContent label = new GUIContent(name.stringValue);
+                            Rect toggleRect = GUILayoutUtility.GetRect(label, buttonStyle);
+
+                            bool startingValue = m_PackageSelectionIndex == i;
+                            bool isMouseOver = toggleRect.Contains(Event.current.mousePosition);
+
+                            if (Event.current.type == EventType.Repaint)
                             {
-                                m_SelectedPackage = i;
+                                int controlID = GUIUtility.GetControlID(FocusType.Passive, toggleRect);
+                                buttonStyle.Draw(toggleRect, label, isMouseOver, m_PackageSelectionIndex == i, true, controlID == GUIUtility.hotControl);
+                            }
+
+                            if(Event.current.type == EventType.MouseDown && isMouseOver)
+                            {
+                                m_PackageSelectionIndex = i;
                             }
                         }
                         else
@@ -291,9 +326,9 @@ namespace AtomPackageManager
                 {
                     SerializedProperty packages = m_SerializedAtom.FindProperty("m_PackageManager").FindPropertyRelative("m_Packages");
 
-                    if (m_SelectedPackage > -1 && m_SelectedPackage < packages.arraySize)
+                    if (m_PackageSelectionIndex > -1 && m_PackageSelectionIndex < packages.arraySize)
                     {
-                        EditorGUILayout.PropertyField(packages.GetArrayElementAtIndex(m_SelectedPackage), true);
+                        EditorGUILayout.PropertyField(packages.GetArrayElementAtIndex(m_PackageSelectionIndex), true);
                     }
                     else
                     {
@@ -306,7 +341,7 @@ namespace AtomPackageManager
                 {
                     if (GUILayout.Button(Labels.packageEditorSaveButton))
                     {
-
+                        OnSavePackageButtonPressed();
                     }
 
                     if (GUILayout.Button(Labels.packageCompileButton))
@@ -329,10 +364,12 @@ namespace AtomPackageManager
         private void OnSavePackageButtonPressed()
         {
             // Get the Package
-            AtomPackage package = m_Atom.packageManager.packages[m_SelectedPackage];
+            AtomPackage package = m_Atom.packageManager.packages[m_PackageSelectionIndex];
 
             // Save to disk
             SaveSerilaizedValues();
+
+            m_Atom.packageManager.Save();
             // Apply Import Settings
             m_Atom.ApplyAtomImporterSettings(package.assemblies[0]);
 
@@ -344,14 +381,14 @@ namespace AtomPackageManager
             m_SerializedAtom.ApplyModifiedProperties();
 
             // Get the Package
-            AtomPackage package = m_Atom.packageManager.packages[m_SelectedPackage];
+            AtomPackage package = m_Atom.packageManager.packages[m_PackageSelectionIndex];
 
             m_Atom.CompilePackage(package);
         }
 
         private void OnRemovePackageButtonPressed()
         {
-            m_Atom.packageManager.packages.RemoveAt(m_SelectedPackage);
+            m_Atom.packageManager.packages.RemoveAt(m_PackageSelectionIndex);
             m_SerializedAtom.Update();
             GUIUtility.ExitGUI();
         }

@@ -113,18 +113,35 @@ namespace AtomPackageManager
         {
             EditorGUILayout.BeginHorizontal(EditorStyles.toolbar, GUILayout.ExpandWidth(true));
             {
-                Rect buttonRect = GUILayoutUtility.GetRect(Labels.menuButton, EditorStyles.toolbarButton);
-
-                if(GUI.Button(buttonRect, Labels.menuButton, EditorStyles.toolbarButton))
+                GUILayout.BeginHorizontal(GUILayout.Width(m_PackageListWidth - 6));
                 {
-                    GenericMenu atomMenu = new GenericMenu();;
-                    atomMenu.AddItem(Labels.addExistingPackageButton, false, OnAddExisitingPackageButtonPressed);
-                    atomMenu.AddItem(Labels.clonePackageButton, false, OnCloneNewPackagePressed);
-                    atomMenu.AddItem(Labels.createNewPackageButton, false, OnCreateNewPackagePressed);
-                    atomMenu.AddSeparator(string.Empty);
-                    atomMenu.AddItem(Labels.closeAtomButton, false, OnQuitPressed);
-                    atomMenu.DropDown(buttonRect);
+                    Rect buttonRect = GUILayoutUtility.GetRect(Labels.menuButton, EditorStyles.toolbarButton);
+
+                    if (GUI.Button(buttonRect, Labels.menuButton, EditorStyles.toolbarButton))
+                    {
+                        GenericMenu atomMenu = new GenericMenu(); ;
+                        atomMenu.AddItem(Labels.addExistingPackageButton, false, OnAddExisitingPackageButtonPressed);
+                        atomMenu.AddItem(Labels.clonePackageButton, false, OnCloneNewPackagePressed);
+                        atomMenu.AddItem(Labels.createNewPackageButton, false, OnCreateNewPackagePressed);
+                        atomMenu.AddSeparator(string.Empty);
+                        atomMenu.AddItem(Labels.closeAtomButton, false, OnQuitPressed);
+                        atomMenu.DropDown(buttonRect);
+                    }
+
+                    GUILayout.FlexibleSpace();
+
+                    if (GUILayout.Button("+", EditorStyles.toolbarButton))
+                    {
+                        OnAddExisitingPackageButtonPressed();
+                    }
+
+                    if (GUILayout.Button("-", EditorStyles.toolbarButton))
+                    {
+                        OnRemovePackageButtonPressed();
+                    }
+
                 }
+                GUILayout.EndHorizontal();
 
                 GUILayout.FlexibleSpace();
 
@@ -152,7 +169,7 @@ namespace AtomPackageManager
             // Get our file path. 
             string atomFilePath = EditorUtility.OpenFilePanel("Atom File", Application.dataPath, "atom");
             // Check if the path is null if the user cancels the path would be empty.
-            if(!string.IsNullOrEmpty(atomFilePath))
+            if (!string.IsNullOrEmpty(atomFilePath))
             {
                 // Try to load the file
                 m_Atom.packageManager.LoadAtomFileAtPath(atomFilePath);
@@ -199,7 +216,7 @@ namespace AtomPackageManager
             // Changes the mouse icon to an left right arrow to show the user they can slide the values. 
             EditorGUIUtility.AddCursorRect(dragRect, MouseCursor.SplitResizeLeftRight);
 
-            GUI.Box(dragRect, GUIContent.none);
+            //GUI.Box(dragRect, GUIContent.none);
 
             if (Event.current.type == EventType.MouseDrag && m_IsResizingList)
             {
@@ -241,7 +258,7 @@ namespace AtomPackageManager
 
         private void DrawLeftPanel(Rect packageListRect)
         {
-            if(m_SerializedAtom == null)
+            if (m_SerializedAtom == null)
             {
                 return;
             }
@@ -255,33 +272,19 @@ namespace AtomPackageManager
                     SerializedProperty packageManager = m_SerializedAtom.FindProperty("m_PackageManager");
                     SerializedProperty packages = packageManager.FindPropertyRelative("m_Packages");
 
-                    GUIStyle buttonStyle = new GUIStyle((GUIStyle)"RL Background");
+                    GUIStyle buttonStyle = new GUIStyle(EditorStyles.miniButtonMid);
 
 
                     buttonStyle.fixedHeight = EditorGUIUtility.singleLineHeight * 2;
                     buttonStyle.alignment = TextAnchor.MiddleLeft;
                     buttonStyle.contentOffset = new Vector2(10, 0);
-                    buttonStyle.margin = new RectOffset(0, 0, 6, 0);
-
-                    buttonStyle.normal.textColor = Color.black;
-                    buttonStyle.onNormal.textColor = Color.grey;
-
-                    buttonStyle.active.textColor = Color.blue;
-                    buttonStyle.onActive.textColor = Color.red;
-
-                    buttonStyle.hover.textColor = Color.green;
-                    buttonStyle.onHover.textColor = Color.blue;
-
-                    buttonStyle.focused.textColor = Color.blue;
-                    buttonStyle.onFocused.textColor = Color.green;
-
-
+                    buttonStyle.margin = new RectOffset(0, 0, 2, 0);
                     buttonStyle.fontStyle = FontStyle.Bold;
 
                     for (int i = 0; i < packages.arraySize; i++)
                     {
                         SerializedProperty current = packages.GetArrayElementAtIndex(i);
-                        if(current != null)
+                        if (current != null)
                         {
 
                             SerializedProperty name = current.FindPropertyRelative("m_PackageName");
@@ -291,16 +294,47 @@ namespace AtomPackageManager
 
                             bool startingValue = m_PackageSelectionIndex == i;
                             bool isMouseOver = toggleRect.Contains(Event.current.mousePosition);
+                            int controlID = GUIUtility.GetControlID(FocusType.Passive, toggleRect);
 
                             if (Event.current.type == EventType.Repaint)
                             {
-                                int controlID = GUIUtility.GetControlID(FocusType.Passive, toggleRect);
-                                buttonStyle.Draw(toggleRect, label, isMouseOver, m_PackageSelectionIndex == i, true, controlID == GUIUtility.hotControl);
+                                buttonStyle.Draw(toggleRect, label, controlID, m_PackageSelectionIndex == i);
                             }
 
-                            if(Event.current.type == EventType.MouseDown && isMouseOver)
+                            switch (Event.current.GetTypeForControl(controlID))
                             {
-                                m_PackageSelectionIndex = i;
+                                case EventType.MouseDown:
+                                    if (toggleRect.Contains(Event.current.mousePosition))
+                                    {
+                                        GUIUtility.hotControl = controlID;
+                                        if(m_PackageSelectionIndex != i)
+                                        {
+                                            m_PackageSelectionIndex = i;
+                                            GUIUtility.hotControl = 0;
+                                            GUIUtility.keyboardControl = 0;
+                                        }
+                                        Event.current.Use();
+                                    }
+                                    break;
+                                case EventType.MouseUp:
+                                    if (GUIUtility.hotControl == controlID)
+                                    {
+                                        GUIUtility.hotControl = 0;
+                                        Event.current.Use();
+                                        GUI.changed = true;
+                                    }
+                                    break;
+                                case EventType.MouseDrag:
+                                    if (GUIUtility.hotControl == controlID)
+                                    {
+                                        Event.current.Use();
+                                    }
+                                    break;
+                                case EventType.Repaint:
+                                    {
+                                       buttonStyle.Draw(toggleRect, label, i == m_PackageSelectionIndex && (GUI.enabled || controlID == GUIUtility.hotControl) && (controlID == GUIUtility.hotControl || GUIUtility.hotControl == 0), controlID == GUIUtility.hotControl && GUI.enabled, i == m_PackageSelectionIndex, false);
+                                    }
+                                    break;
                             }
                         }
                         else

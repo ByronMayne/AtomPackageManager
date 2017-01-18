@@ -17,6 +17,7 @@ namespace AtomPackageManager.Packages
         private List<string> m_CompiledScripts = new List<string>(); 
 
         [SerializeField]
+        [AssemblyNameAttribute]
         private List<string> m_References;
 
         [SerializeField]

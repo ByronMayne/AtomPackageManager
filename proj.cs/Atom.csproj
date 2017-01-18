@@ -41,43 +41,47 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Atom\Atom.cs" />
-    <Compile Include="Atom\BuiltInResourcesWindow.cs" />
-    <Compile Include="Atom\Constants.cs" />
-    <Compile Include="Atom\Events\AtomAssetImporter.cs" />
-    <Compile Include="Atom\Events\ImportPluginRequest.cs" />
-    <Compile Include="Atom\Events\GitCloneRequest.cs" />
-    <Compile Include="Atom\Events\Events.cs" />
-    <Compile Include="Atom\FilePaths.cs" />
-    <Compile Include="Atom\Labels.cs" />
-    <Compile Include="Atom\MenuItems.cs" />
-    <Compile Include="Atom\Package\AtomAssembly.cs" />
-    <Compile Include="Atom\Package\AtomPackage.cs" />
-    <Compile Include="Atom\Package\PackageEditor.cs" />
-    <Compile Include="Atom\Package\PackageManager.cs" />
-    <Compile Include="Atom\Package\PluginPlatforms.cs">
+    <Compile Include="Atom.cs" />
+    <Compile Include="BuiltInResourcesWindow.cs" />
+    <Compile Include="Constants.cs" />
+    <Compile Include="Attributes\AssemblyNameAttribute.cs" />
+    <Compile Include="Editors\AssemblyNamePropertyDrawer.cs" />
+    <Compile Include="Events\AtomAssetImporter.cs" />
+    <Compile Include="Events\ImportPluginRequest.cs" />
+    <Compile Include="Events\GitCloneRequest.cs" />
+    <Compile Include="Events\Events.cs" />
+    <Compile Include="FilePaths.cs" />
+    <Compile Include="Labels.cs" />
+    <Compile Include="MenuItems.cs" />
+    <Compile Include="Package\AtomAssembly.cs" />
+    <Compile Include="Package\AtomPackage.cs" />
+    <Compile Include="Editors\PackageEditor.cs" />
+    <Compile Include="Package\PackageManager.cs" />
+    <Compile Include="Package\PluginPlatforms.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
       <DependentUpon>PluginPlatforms.tt</DependentUpon>
     </Compile>
-    <Compile Include="Atom\PathHelpers.cs" />
-    <Compile Include="Atom\Services\Implementations\CodeDomCompilerService.cs" />
-    <Compile Include="Atom\Services\Implementations\GitSourceControlService.cs" />
-    <Compile Include="Atom\Services\Implementations\PersistenceBlock.cs" />
-    <Compile Include="Atom\Services\Implementations\PluginImporterService.cs" />
-    <Compile Include="Atom\Services\Implementations\SolutionModifier.cs" />
-    <Compile Include="Atom\Services\Interfaces\ICompilerService.cs" />
-    <Compile Include="Atom\Services\Interfaces\IPluginImporterService.cs" />
-    <Compile Include="Atom\Services\Interfaces\ISolutionModifier.cs" />
-    <Compile Include="Atom\Services\Interfaces\ISourceControlService.cs" />
+    <Compile Include="PathHelpers.cs" />
+    <Compile Include="Resolvers\AssemblyReferenceResolver.cs" />
+    <Compile Include="Resolvers\UnresolvedAssemblyException.cs" />
+    <Compile Include="Services\Implementations\CodeDomCompilerService.cs" />
+    <Compile Include="Services\Implementations\GitSourceControlService.cs" />
+    <Compile Include="Services\Implementations\PersistenceBlock.cs" />
+    <Compile Include="Services\Implementations\PluginImporterService.cs" />
+    <Compile Include="Services\Implementations\SolutionModifier.cs" />
+    <Compile Include="Services\Interfaces\ICompilerService.cs" />
+    <Compile Include="Services\Interfaces\IPluginImporterService.cs" />
+    <Compile Include="Services\Interfaces\ISolutionModifier.cs" />
+    <Compile Include="Services\Interfaces\ISourceControlService.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Atom\Events\SerilizationRequests.cs" />
+    <Compile Include="Events\SerilizationRequests.cs" />
   </ItemGroup>
   <ItemGroup>
     <Service Include="{508349B6-6B84-4DF5-91F0-309BEEBAD82D}" />
   </ItemGroup>
   <ItemGroup>
-    <Content Include="Atom\Package\PluginPlatforms.tt">
+    <Content Include="Package\PluginPlatforms.tt">
       <Generator>TextTemplatingFileGenerator</Generator>
       <LastGenOutput>PluginPlatforms.cs</LastGenOutput>
     </Content>

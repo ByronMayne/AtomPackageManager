@@ -7,6 +7,7 @@ using System.IO;
 using UnityEditor;
 using UnityEngine;
 using System;
+using AtomPackageManager.Resolvers;
 
 namespace AtomPackageManager.Services
 {
@@ -36,12 +37,12 @@ namespace AtomPackageManager.Services
         public void CompilePackage(AtomPackage package, OnCompileCompleteDelegate onComplete)
         {
             // Loop over all assemblies
-            foreach(AtomAssembly assembly in package.assemblies)
+            foreach (AtomAssembly assembly in package.assemblies)
             {
                 string directory = Path.GetDirectoryName(assembly.systemAssetPath);
 
                 // Validate our output detestation exists. 
-                if(!Directory.Exists(directory))
+                if (!Directory.Exists(directory))
                 {
                     Directory.CreateDirectory(directory);
                 }
@@ -49,7 +50,7 @@ namespace AtomPackageManager.Services
                 // Create a new array
                 string[] scriptsToCompile = new string[assembly.compiledScripts.Count];
                 // Make our paths
-                for(int i = 0; i < scriptsToCompile.Length; i++)
+                for (int i = 0; i < scriptsToCompile.Length; i++)
                 {
                     // Build our path
                     string rootPath = Constants.SCRIPT_IMPORT_DIRECTORY + package.packageName;
@@ -75,6 +76,14 @@ namespace AtomPackageManager.Services
                 parameters.OutputAssembly = assembly.systemAssetPath + assembly.assemblyName + ".dll";
                 // If we should be debug symbols
                 parameters.IncludeDebugInformation = true; // TODO an option
+                // Get our reference names (this is only the 'UnityENgine' instead of the system path which we need
+                IList<string> referencedAssemblies = assembly.references;
+                // Create our return 
+                string[] resolvedAssemblyPaths = null;
+                // Use the assembly resolver
+                resolvedAssemblyPaths = AssemblyReferenceResolver.ResolveAssemblyPaths(referencedAssemblies);
+                // Add them to our compiler
+                parameters.ReferencedAssemblies.AddRange(resolvedAssemblyPaths);
                 // We want UnityEngine
                 parameters.ReferencedAssemblies.Add(GetAssemblyLocation<MonoBehaviour>());
                 // and System

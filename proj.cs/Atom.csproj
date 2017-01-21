@@ -76,6 +76,11 @@
     <Compile Include="Services\Interfaces\ISourceControlService.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Events\SerilizationRequests.cs" />
+    <Compile Include="Settings\AtomSettings.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>AtomSettings.tt</DependentUpon>
+    </Compile>
   </ItemGroup>
   <ItemGroup>
     <Service Include="{508349B6-6B84-4DF5-91F0-309BEEBAD82D}" />
@@ -85,6 +90,11 @@
       <Generator>TextTemplatingFileGenerator</Generator>
       <LastGenOutput>PluginPlatforms.cs</LastGenOutput>
     </Content>
+    <Content Include="Settings\AtomSettings.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>AtomSettings.cs</LastGenOutput>
+    </Content>
+    <None Include="Settings\AtomSettings.xml" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Target Name="AfterBuild">

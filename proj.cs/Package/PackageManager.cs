@@ -19,12 +19,13 @@ namespace AtomPackageManager
             return Application.dataPath.Replace("/Assets", Constants.PACKAGE_MANAGER_LOCATION);
         }
 
-        public PackageManager(Atom atomInstance)
-        {
-        }
-
         [SerializeField]
         private List<AtomPackage> m_Packages = new List<AtomPackage>();
+
+        [SerializeField]
+        private AtomSettings m_Settings;
+
+
         public List<AtomPackage> packages
         {
             get { return m_Packages; }
@@ -34,6 +35,8 @@ namespace AtomPackageManager
         {
             // Cast us to JSON
             string json = JsonUtility.ToJson(this, true);
+            // Save our settings
+            m_Settings.Save();
             // Save it to disk
             File.WriteAllText(FilePaths.packageManagerPath, json);
         }
@@ -53,6 +56,9 @@ namespace AtomPackageManager
                 // Save our current one.
                 Save();
             }
+
+            // Load our settings
+            m_Settings.Load();
         }
 
         /// <summary>

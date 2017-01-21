@@ -9,26 +9,26 @@
 <#@ import namespace="System.Reflection" #>
 <#@ import namespace="System.Collections.Generic" #> 
 <#
-	// Create a list for our settings
-	List<AtomSettings> m_Settings = new List<AtomSettings>();
-	// Get our template path
-	string templatePath = Host.TemplateFile;
-	// replace the extension
-	string xmlPath = templatePath.Replace(".tt", ".xml");
-	// Create our document
-	XmlDocument xDoc = new XmlDocument();
-	// Load the value
-	xDoc.Load(xmlPath);
-	// Loop over our values
-	foreach(XmlNode node in xDoc.DocumentElement.ChildNodes)
+    // Create a list for our settings
+    List<AtomSettings> m_Settings = new List<AtomSettings>();
+    // Get our template path
+    string templatePath = Host.TemplateFile;
+    // replace the extension
+    string xmlPath = templatePath.Replace(".tt", ".xml");
+    // Create our document
+    XmlDocument xDoc = new XmlDocument();
+    // Load the value
+    xDoc.Load(xmlPath);
+    // Loop over our values
+    foreach(XmlNode node in xDoc.DocumentElement.ChildNodes)
     {
-		AtomSettings newSetting = new AtomSettings();
-		newSetting.name = node.Attributes["name"].InnerText;
-		newSetting.type = node.ChildNodes[0].InnerText;
-		newSetting.comment = node.ChildNodes[1].InnerText;
-		newSetting.isLocalScope = string.Compare(node.ChildNodes[2].InnerText, "true", StringComparison.OrdinalIgnoreCase) == 0;
-		newSetting.defaultValue = node.ChildNodes[3].InnerText;
-		m_Settings.Add(newSetting);
+        AtomSettings newSetting = new AtomSettings();
+        newSetting.name = node.Attributes["name"].InnerText;
+        newSetting.type = node.ChildNodes[0].InnerText;
+        newSetting.comment = node.ChildNodes[1].InnerText;
+        newSetting.isLocalScope = string.Compare(node.ChildNodes[2].InnerText, "true", StringComparison.OrdinalIgnoreCase) == 0;
+        newSetting.defaultValue = node.ChildNodes[3].InnerText;
+        m_Settings.Add(newSetting);
     }
 #>
 using UnityEngine;
@@ -37,17 +37,17 @@ using UnityEditor;
 namespace AtomPackageManager
 {
     [System.Serializable]
-	public class AtomSettings
-	{
+    public class AtomSettings
+    {
 <#    for(int i = 0; i < m_Settings.Count; i++) {  #>
 <# if(!m_Settings[i].isLocalScope) {
 #>		[SerializeField]
 <#}#>
-		private <#= m_Settings[i].type #> m_<#= m_Settings[i].name #>;
+        private <#= m_Settings[i].type #> m_<#= m_Settings[i].name #> = <#= m_Settings[i].defaultValue #>;
 <#    }                                            #>
 
 <#    for(int i = 0; i < m_Settings.Count; i++) {  #>
-		/// <summary>
+        /// <summary>
         /// <#= m_Settings[i].comment #>
 <#      if(m_Settings[i].isLocalScope) { #>
         /// This value is only saved on your local machine.
@@ -55,146 +55,146 @@ namespace AtomPackageManager
         /// This value is saved to the project settings of Atom.
 <# } #>
         /// </summary>
-		public <#= m_Settings[i].type #> <#= m_Settings[i].name #>
-		{
-			get { return m_<#= m_Settings[i].name #>; }
-			set { <#= m_Settings[i].name #> = value; }
-		}
+        public <#= m_Settings[i].type #> <#= m_Settings[i].name #>
+        {
+            get { return m_<#= m_Settings[i].name #>; }
+            set { <#= m_Settings[i].name #> = value; }
+        }
 <#     }                                           #>
 
         /// <summary>
         /// Loads all the settings from disk.
         /// </summary>
-		public void Load()
-		{
+        public void Load()
+        {
 <#    for(int i = 0; i < m_Settings.Count; i++) 
-	  {  
-		if(!m_Settings[i].isLocalScope) 
-		{ 
-			continue; 
-			} 
+      {  
+        if(!m_Settings[i].isLocalScope) 
+        { 
+            continue; 
+            } 
 #>
-			<# WriteLoadingEditorPrefs(m_Settings[i]); #>
+            <# WriteLoadingEditorPrefs(m_Settings[i]); #>
 <#    }  #>
-		}
+        }
 
         /// <summary>
         /// Writes all the settings to disk.
         /// </summary>
-		public void Save()
-		{
+        public void Save()
+        {
 <#    for(int i = 0; i < m_Settings.Count; i++) 
-	  {  
-		if(!m_Settings[i].isLocalScope) 
-		{ 
-			continue; 
-			} 
+      {  
+        if(!m_Settings[i].isLocalScope) 
+        { 
+            continue; 
+            } 
 #>
-			<# WriteSavingEditorPrefs(m_Settings[i]); #>
+            <# WriteSavingEditorPrefs(m_Settings[i]); #>
 <#    }  #>		}
-	}
+    }
 }
 
 <#+ 
 public void WriteLoadingEditorPrefs(AtomSettings setting)
 {
-	Write(setting.name);
-	Write(" = EditorPrefs.Get");
+    Write(setting.name);
+    Write(" = EditorPrefs.Get");
 
-	if(string.Compare(setting.type, "bool", StringComparison.OrdinalIgnoreCase) == 0)
+    if(string.Compare(setting.type, "bool", StringComparison.OrdinalIgnoreCase) == 0)
     {
-		Write("Bool(key:PlayerSettings.productName + \":");
-		Write(setting.name);
-		Write(":");
-		Write(setting.type);
-		Write("\", defaultValue:");
-		Write(setting.defaultValue);
-		WriteLine(");");
+        Write("Bool(key:PlayerSettings.productName + \":");
+        Write(setting.name);
+        Write(":");
+        Write(setting.type);
+        Write("\", defaultValue:");
+        Write(setting.defaultValue);
+        WriteLine(");");
     }
-	else if(string.Compare(setting.type, "string", StringComparison.OrdinalIgnoreCase) == 0)
+    else if(string.Compare(setting.type, "string", StringComparison.OrdinalIgnoreCase) == 0)
     {
-		Write("String(key:PlayerSettings.productName + \":");
-		Write(setting.name);
-		Write(":");
-		Write(setting.type);
-		Write("\", defaultValue:@\"");
-		Write(setting.defaultValue);
-		WriteLine("\");");
+        Write("String(key:PlayerSettings.productName + \":");
+        Write(setting.name);
+        Write(":");
+        Write(setting.type);
+        Write("\", defaultValue:@\"");
+        Write(setting.defaultValue);
+        WriteLine("\");");
     }
-	else if(string.Compare(setting.type, "float", StringComparison.OrdinalIgnoreCase) == 0)
+    else if(string.Compare(setting.type, "float", StringComparison.OrdinalIgnoreCase) == 0)
     {
-		Write("Float(key:PlayerSettings.productName + \":");
-		Write(setting.name);
-		Write(":");
-		Write(setting.type);
-		Write("\", defaultValue:");
-		Write(setting.defaultValue);
-		WriteLine(");");
+        Write("Float(key:PlayerSettings.productName + \":");
+        Write(setting.name);
+        Write(":");
+        Write(setting.type);
+        Write("\", defaultValue:");
+        Write(setting.defaultValue);
+        WriteLine(");");
     }
-	else if(string.Compare(setting.type, "int", StringComparison.OrdinalIgnoreCase) == 0)
+    else if(string.Compare(setting.type, "int", StringComparison.OrdinalIgnoreCase) == 0)
     {
-		Write("Int(key:PlayerSettings.productName + \":");
-		Write(setting.name);
-		Write(":");
-		Write(setting.type);
-		Write("\", defaultValue:");
-		Write(setting.defaultValue);
-		WriteLine(");");
+        Write("Int(key:PlayerSettings.productName + \":");
+        Write(setting.name);
+        Write(":");
+        Write(setting.type);
+        Write("\", defaultValue:");
+        Write(setting.defaultValue);
+        WriteLine(");");
     }
 }
 
 public void WriteSavingEditorPrefs(AtomSettings setting)
 {
-	Write("EditorPrefs.Set");
+    Write("EditorPrefs.Set");
 
-	if(string.Compare(setting.type, "bool", StringComparison.OrdinalIgnoreCase) == 0)
+    if(string.Compare(setting.type, "bool", StringComparison.OrdinalIgnoreCase) == 0)
     {
-		Write("Bool(key:PlayerSettings.productName + \":");
-		Write(setting.name);
-		Write(":");
-		Write(setting.type);
-		Write("\", value:");
-		Write(setting.defaultValue);
-		WriteLine(");");
+        Write("Bool(key:PlayerSettings.productName + \":");
+        Write(setting.name);
+        Write(":");
+        Write(setting.type);
+        Write("\", value:");
+        Write(setting.defaultValue);
+        WriteLine(");");
     }
-	else if(string.Compare(setting.type, "string", StringComparison.OrdinalIgnoreCase) == 0)
+    else if(string.Compare(setting.type, "string", StringComparison.OrdinalIgnoreCase) == 0)
     {
-		Write("String(key:PlayerSettings.productName + \":");
-		Write(setting.name);
-		Write(":");
-		Write(setting.type);
-		Write("\", value:@\"");
-		Write(setting.defaultValue);
-		WriteLine("\");");
+        Write("String(key:PlayerSettings.productName + \":");
+        Write(setting.name);
+        Write(":");
+        Write(setting.type);
+        Write("\", value:@");
+        Write(setting.defaultValue);
+        WriteLine(");");
     }
-	else if(string.Compare(setting.type, "float", StringComparison.OrdinalIgnoreCase) == 0)
+    else if(string.Compare(setting.type, "float", StringComparison.OrdinalIgnoreCase) == 0)
     {
-		Write("Float(key:PlayerSettings.productName + \":");
-		Write(setting.name);
-		Write(":");
-		Write(setting.type);
-		Write("\", value:");
-		Write(setting.defaultValue);
-		WriteLine(");");
+        Write("Float(key:PlayerSettings.productName + \":");
+        Write(setting.name);
+        Write(":");
+        Write(setting.type);
+        Write("\", value:");
+        Write(setting.defaultValue);
+        WriteLine(");");
     }
-	else if(string.Compare(setting.type, "int", StringComparison.OrdinalIgnoreCase) == 0)
+    else if(string.Compare(setting.type, "int", StringComparison.OrdinalIgnoreCase) == 0)
     {
-		Write("Int(key:PlayerSettings.productName + \":");
-		Write(setting.name);
-		Write(":");
-		Write(setting.type);
-		Write("\", value:");
-		Write(setting.defaultValue);
-		WriteLine(");");
+        Write("Int(key:PlayerSettings.productName + \":");
+        Write(setting.name);
+        Write(":");
+        Write(setting.type);
+        Write("\", value:");
+        Write(setting.defaultValue);
+        WriteLine(");");
     }
 }
 
 public struct AtomSettings
 {
-	public string name;
-	public string type;
-	public string comment;
-	public bool isLocalScope;
-	public string defaultValue;
+    public string name;
+    public string type;
+    public string comment;
+    public bool isLocalScope;
+    public string defaultValue;
 }
 #>

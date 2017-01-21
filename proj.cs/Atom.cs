@@ -42,7 +42,7 @@ namespace AtomPackageManager
         {
             if(m_PackageManager == null)
             {
-                m_PackageManager = new PackageManager(this);
+                m_PackageManager = new PackageManager();
                 m_PackageManager.Load();
             }
 

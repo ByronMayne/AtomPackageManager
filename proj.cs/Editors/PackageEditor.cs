@@ -5,6 +5,7 @@ using AtomPackageManager.Packages;
 using AtomPackageManager.Services;
 using System;
 using System.IO;
+using UnityEditor.AnimatedValues;
 
 namespace AtomPackageManager
 {
@@ -33,6 +34,10 @@ namespace AtomPackageManager
         // Packages
         private bool m_IsAddingPackage = false;
         private string m_NewPackageURL = "https://github.com/ByronMayne/UnityIO.git";
+
+        // animated values
+        private AnimBool m_AddRepositoryPackageEditorOpen;
+        private AnimBool m_SettingsEditorOpen;
 
         // Serialized Data
         private SerializedObject m_SerializedAtom;
@@ -97,6 +102,18 @@ namespace AtomPackageManager
         {
             AssignAtom(FindObjectOfType<Atom>());
             LoadSerializedValues();
+
+            // Create Serialized Values
+            m_AddRepositoryPackageEditorOpen = new AnimBool(false);
+            m_SettingsEditorOpen = new AnimBool(false);
+            m_AddRepositoryPackageEditorOpen.valueChanged.AddListener(Repaint);
+            m_SettingsEditorOpen.valueChanged.AddListener(Repaint);
+        }
+
+        private void OnDisable()
+        {
+            m_AddRepositoryPackageEditorOpen.valueChanged.RemoveListener(Repaint);
+            m_SettingsEditorOpen.valueChanged.RemoveListener(Repaint);
         }
 
         private void OnGUI()
@@ -122,9 +139,12 @@ namespace AtomPackageManager
                         GenericMenu atomMenu = new GenericMenu(); ;
                         atomMenu.AddItem(Labels.addExistingPackageButton, false, OnAddExisitingPackageButtonPressed);
                         atomMenu.AddItem(Labels.clonePackageButton, false, OnCloneNewPackagePressed);
-                        atomMenu.AddItem(Labels.createNewPackageButton, false, OnCreateNewPackagePressed);
+                        //atomMenu.AddItem(Labels.createNewPackageButton, false, OnCreateNewPackagePressed);
+                        atomMenu.AddDisabledItem(Labels.createNewPackageButton);
                         atomMenu.AddSeparator(string.Empty);
-                        atomMenu.AddItem(Labels.closeAtomButton, false, OnQuitPressed);
+                        //atomMenu.AddItem(Labels.closeAtomButton, false, OnQuitPressed);
+                        atomMenu.AddItem(Labels.packageEditorSettingsButton, m_SettingsEditorOpen.target, ToggleSettingsView);
+                        atomMenu.AddDisabledItem(Labels.closeAtomButton);
                         atomMenu.DropDown(buttonRect);
                     }
 
@@ -173,19 +193,26 @@ namespace AtomPackageManager
             {
                 // Try to load the file
                 m_Atom.packageManager.LoadAtomFileAtPath(atomFilePath);
-                Debug.Log("Added:" + m_Atom.packageManager.packages.Count);
             }
             m_SerializedAtom.Update();
         }
 
         private void OnCloneNewPackagePressed()
         {
-
+            m_AddRepositoryPackageEditorOpen.target = !m_AddRepositoryPackageEditorOpen.target;
         }
 
         private void OnCreateNewPackagePressed()
         {
 
+        }
+
+        /// <summary>
+        /// Toggles the viewing state of the settings menu.
+        /// </summary>
+        private void ToggleSettingsView()
+        {
+            m_SettingsEditorOpen.target = !m_SettingsEditorOpen.target;
         }
 
         private void OnQuitPressed()
@@ -263,11 +290,32 @@ namespace AtomPackageManager
                 return;
             }
 
-            GUI.Box(packageListRect, GUIContent.none, (GUIStyle)"AnimationCurveEditorBackground");
-
             GUILayout.BeginArea(packageListRect);
             {
-                m_PackageListScrollPosition = EditorGUILayout.BeginScrollView(m_PackageListScrollPosition);
+                GUILayout.BeginVertical(GUI.skin.box);
+                {
+                    if (EditorGUILayout.BeginFadeGroup(m_AddRepositoryPackageEditorOpen.faded))
+                    {
+                        m_NewPackageURL = EditorGUILayout.TextField(m_NewPackageURL);
+                        GUILayout.BeginHorizontal();
+                        {
+                            if (GUILayout.Button("Add", EditorStyles.miniButtonLeft))
+                            {
+                                m_Atom.Clone(m_NewPackageURL, Constants.SCRIPT_IMPORT_DIRECTORY);
+                                m_AddRepositoryPackageEditorOpen.target = false;
+                            }
+
+                            if (GUILayout.Button("Cancel", EditorStyles.miniButtonRight))
+                            {
+                                m_AddRepositoryPackageEditorOpen.target = false;
+                            }
+                        }
+                        GUILayout.EndHorizontal();
+                    }
+                }
+                EditorGUILayout.EndFadeGroup();
+
+                m_PackageListScrollPosition = EditorGUILayout.BeginScrollView(m_PackageListScrollPosition, (GUIStyle)"AnimationCurveEditorBackground");
                 {
                     SerializedProperty packageManager = m_SerializedAtom.FindProperty("m_PackageManager");
                     SerializedProperty packages = packageManager.FindPropertyRelative("m_Packages");
@@ -307,7 +355,7 @@ namespace AtomPackageManager
                                     if (toggleRect.Contains(Event.current.mousePosition))
                                     {
                                         GUIUtility.hotControl = controlID;
-                                        if(m_PackageSelectionIndex != i)
+                                        if (m_PackageSelectionIndex != i)
                                         {
                                             m_PackageSelectionIndex = i;
                                             GUIUtility.hotControl = 0;
@@ -332,7 +380,7 @@ namespace AtomPackageManager
                                     break;
                                 case EventType.Repaint:
                                     {
-                                       buttonStyle.Draw(toggleRect, label, i == m_PackageSelectionIndex && (GUI.enabled || controlID == GUIUtility.hotControl) && (controlID == GUIUtility.hotControl || GUIUtility.hotControl == 0), controlID == GUIUtility.hotControl && GUI.enabled, i == m_PackageSelectionIndex, false);
+                                        buttonStyle.Draw(toggleRect, label, i == m_PackageSelectionIndex && (GUI.enabled || controlID == GUIUtility.hotControl) && (controlID == GUIUtility.hotControl || GUIUtility.hotControl == 0), controlID == GUIUtility.hotControl && GUI.enabled, i == m_PackageSelectionIndex, false);
                                     }
                                     break;
                             }
@@ -342,25 +390,35 @@ namespace AtomPackageManager
                             packages.DeleteArrayElementAtIndex(i);
                         }
                     }
+                    GUILayout.FlexibleSpace();
                 }
                 EditorGUILayout.EndScrollView();
 
-                GUILayout.FlexibleSpace();
 
                 GUILayout.Box(GUIContent.none, GUILayout.ExpandWidth(true), GUILayout.Height(3.0f));
+
+                if (EditorGUILayout.BeginFadeGroup(m_SettingsEditorOpen.faded))
+                {
+                    GUILayout.Label(Labels.settingsLocalCatagory, EditorStyles.boldLabel);
+
+                    GUILayout.Label(Labels.settingsProjectCatagory, EditorStyles.boldLabel);
+                }
+                EditorGUILayout.EndFadeGroup();
             }
             GUILayout.EndArea();
         }
 
         private void DrawContentArea(Rect packageInfoRect)
         {
+            SerializedProperty packages = m_SerializedAtom.FindProperty("m_PackageManager").FindPropertyRelative("m_Packages");
+            bool hasPackageSelected = m_PackageSelectionIndex > -1 && m_PackageSelectionIndex < packages.arraySize;
             GUILayout.BeginArea(packageInfoRect);
             {
                 m_PackageInfoScrollPosition = EditorGUILayout.BeginScrollView(m_PackageInfoScrollPosition);
                 {
-                    SerializedProperty packages = m_SerializedAtom.FindProperty("m_PackageManager").FindPropertyRelative("m_Packages");
 
-                    if (m_PackageSelectionIndex > -1 && m_PackageSelectionIndex < packages.arraySize)
+
+                    if (hasPackageSelected)
                     {
                         EditorGUILayout.PropertyField(packages.GetArrayElementAtIndex(m_PackageSelectionIndex), true);
                     }
@@ -371,21 +429,24 @@ namespace AtomPackageManager
                 }
                 EditorGUILayout.EndScrollView();
 
-                GUILayout.BeginHorizontal(EditorStyles.textArea);
+                if (hasPackageSelected)
                 {
-                    if (GUILayout.Button(Labels.packageEditorSaveButton))
+                    GUILayout.BeginHorizontal(EditorStyles.textArea);
                     {
-                        OnSavePackageButtonPressed();
-                    }
+                        if (GUILayout.Button(Labels.packageEditorSaveButton))
+                        {
+                            OnSavePackageButtonPressed();
+                        }
 
-                    if (GUILayout.Button(Labels.packageCompileButton))
-                    {
-                        OnCompilePackageButtonPressed();
-                    }
+                        if (GUILayout.Button(Labels.packageCompileButton))
+                        {
+                            OnCompilePackageButtonPressed();
+                        }
 
-                    if (GUILayout.Button(Labels.packageEditorRemoveButton))
-                    {
-                        OnRemovePackageButtonPressed();
+                        if (GUILayout.Button(Labels.packageEditorRemoveButton))
+                        {
+                            OnRemovePackageButtonPressed();
+                        }
                     }
                 }
 

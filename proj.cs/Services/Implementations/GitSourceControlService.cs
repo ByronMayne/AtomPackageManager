@@ -15,6 +15,7 @@ namespace AtomPackageManager.Services
         private string m_RepositoryURL;
         private string m_WorkingDirectory;
         private bool m_WasSuccessful;
+        private OnCloneCompletedDelegate m_OnCompleteCallback;
 
         /// <summary>
         /// The URL of the repository we are trying to clone.
@@ -95,6 +96,9 @@ namespace AtomPackageManager.Services
                 Directory.CreateDirectory(workingDirectory);
             }
 
+            // Save our callback.
+            m_OnCompleteCallback = onComplete;
+
             // Create a new process for the git request. 
             var processInfo = new ProcessStartInfo();
             // Set our file depending on platform
@@ -105,6 +109,10 @@ namespace AtomPackageManager.Services
                 processInfo.UseShellExecute = false;
                 // On Windows '/c' closes the console when it's done
                 processInfo.Arguments = "/c ";
+                // Now forward our logs
+                processInfo.RedirectStandardOutput = true;
+                // and our error logs
+                processInfo.RedirectStandardError = true;
             }
             else if (Application.platform == RuntimePlatform.OSXEditor)
             {
@@ -114,32 +122,51 @@ namespace AtomPackageManager.Services
             }
             // Set our arguments
             processInfo.Arguments += " git clone -o master " + repositoryURL + " " + workingDirectory;
-
-            Debug.Log("Cloning: " + processInfo.Arguments);
             // We don't want to show a window.
-            processInfo.CreateNoWindow = false;
-
+            processInfo.CreateNoWindow = true;
             // We work inside our new directory
             processInfo.WorkingDirectory = workingDirectory;
             // Start the process
             Process gitCloneProcess = Process.Start(processInfo);
-            // Yield until it's done. 
-            gitCloneProcess.WaitForExit();
-            // Clone the window when we are complete.
-            gitCloneProcess.Close();
-            // Clean up our process
-            gitCloneProcess.Dispose();
+            gitCloneProcess.BeginOutputReadLine();
+            // Create a callback for out data output
+            gitCloneProcess.OutputDataReceived += OutputDataReceived;
+            // and one for our error output. 
+            gitCloneProcess.ErrorDataReceived += ErrorDataReceived;
+            // Once it's quit we move on.
+            gitCloneProcess.Exited += GitCloneProcess_Exited;
+            gitCloneProcess.Start();
+        }
+
+        private void GitCloneProcess_Exited(object sender, EventArgs e)
+        {
 
             // Fire our event but we have to delay it as we are currently
             // executing on a custom thread. delayCall is always called in the main thread.
             EditorApplication.delayCall += () =>
             {
                 // Invoke our callback. 
-                if(onComplete != null)
+                if (m_OnCompleteCallback != null)
                 {
-                    onComplete(this);
+                    m_OnCompleteCallback(this);
                 }
             };
+        }
+
+        /// <summary>
+        /// Our callback that we get when we are using the command line. It's all the output. 
+        /// </summary>
+        private void OutputDataReceived(object sender, System.Diagnostics.DataReceivedEventArgs e)
+        {
+            Debug.Log(e.Data);
+        }
+
+        /// <summary>
+        /// Our callback that we get when we are using the command line. It's all the errors. 
+        /// </summary>
+        private void ErrorDataReceived(object sender, System.Diagnostics.DataReceivedEventArgs e)
+        {
+            Debug.LogError(e.Data);
         }
 
         /// <summary>

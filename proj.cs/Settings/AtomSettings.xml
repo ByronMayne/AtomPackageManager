@@ -6,4 +6,10 @@
     <IsLocal>false</IsLocal>
     <DefaultValue>"/Assets/Atom"</DefaultValue>
   </Preference>
+  <Preference name="runInBackground">
+    <Type>bool</Type>
+    <Comment>Should Atom run in the background and check for updates?</Comment>
+    <IsLocal>true</IsLocal>
+    <DefaultValue>true</DefaultValue>
+  </Preference>
 </AtomSettings>

@@ -5,6 +5,7 @@
 <#@ import namespace="System.Xml" #>
 <#@ import namespace="System" #>
 <#@ import namespace="System.IO" #>
+<#@ import namespace="System.Linq" #>
 <#@ import namespace="System.Text" #>
 <#@ import namespace="System.Reflection" #>
 <#@ import namespace="System.Collections.Generic" #> 
@@ -30,6 +31,8 @@
         newSetting.defaultValue = node.ChildNodes[3].InnerText;
         m_Settings.Add(newSetting);
     }
+
+	m_Settings.Sort( (lhs, rhs) => lhs.isLocalScope.CompareTo(rhs.isLocalScope));
 #>
 using UnityEngine;
 using UnityEditor;
@@ -39,63 +42,127 @@ namespace AtomPackageManager
     [System.Serializable]
     public class AtomSettings
     {
-<#    for(int i = 0; i < m_Settings.Count; i++) {  #>
-<# if(!m_Settings[i].isLocalScope) {
-#>		[SerializeField]
-<#}#>
-        private <#= m_Settings[i].type #> m_<#= m_Settings[i].name #> = <#= m_Settings[i].defaultValue #>;
-<#    }                                            #>
+<#    
+	// Set our correct indent
+	PushIndent("        ");
+	// We want to write a header when we start using local values.
+	bool hasStartedLocal = false;
+	if(m_Settings.Count > 0)
+    {
+		WriteLine("[Header(\"Project Settings\")]");
+    }
 
-<#    for(int i = 0; i < m_Settings.Count; i++) {  #>
-        /// <summary>
-        /// <#= m_Settings[i].comment #>
-<#      if(m_Settings[i].isLocalScope) { #>
-        /// This value is only saved on your local machine.
-<# } else { #>
-        /// This value is saved to the project settings of Atom.
-<# } #>
-        /// </summary>
-        public <#= m_Settings[i].type #> <#= m_Settings[i].name #>
-        {
-            get { return m_<#= m_Settings[i].name #>; }
-            set { <#= m_Settings[i].name #> = value; }
-        }
-<#     }                                           #>
+	// Fields
+	for(int i = 0; i < m_Settings.Count; i++) 
+	{  
+		WriteField(m_Settings[i], ref hasStartedLocal);
+    }
+	WriteLine("");
 
-        /// <summary>
-        /// Loads all the settings from disk.
-        /// </summary>
-        public void Load()
-        {
-<#    for(int i = 0; i < m_Settings.Count; i++) 
-      {  
-        if(!m_Settings[i].isLocalScope) 
-        { 
-            continue; 
-            } 
+	// Properties
+	for(int i = 0; i < m_Settings.Count; i++) 
+	{  
+		WriteProperty(m_Settings[i]);
+    }
+	
+	// Loading Function
+	WriteLine("/// <summary>");
+	WriteLine("/// Loads all the settings from disk.");
+	WriteLine("/// </summary>");
+	WriteLine("public void Load()");
+	WriteLine("{");
+	PushIndent("    ");
+    {		
+		for(int i = 0; i < m_Settings.Count; i++) 
+		{  
+			WriteLoadingEditorPrefs(m_Settings[i]);
+		}
+    }
+	PopIndent();
+	WriteLine("}");
+
+	// Space
+	WriteLine("");
+
+	// Saving Function
+	WriteLine("/// <summary>");
+	WriteLine("/// Writes all the settings to disk.");
+	WriteLine("/// </summary>");
+	WriteLine("public void Save()");
+	WriteLine("{");
+	PushIndent("    ");
+    {
+		for(int i = 0; i < m_Settings.Count; i++) 
+		{  
+			WriteSavingEditorPrefs(m_Settings[i]);
+		}
+    }
+	PopIndent();
+	WriteLine("}");
+
+	ClearIndent();
 #>
-            <# WriteLoadingEditorPrefs(m_Settings[i]); #>
-<#    }  #>
-        }
-
-        /// <summary>
-        /// Writes all the settings to disk.
-        /// </summary>
-        public void Save()
-        {
-<#    for(int i = 0; i < m_Settings.Count; i++) 
-      {  
-        if(!m_Settings[i].isLocalScope) 
-        { 
-            continue; 
-            } 
-#>
-            <# WriteSavingEditorPrefs(m_Settings[i]); #>
-<#    }  #>		}
     }
 }
 
 <#+ 
+private void WriteField(AtomSettings setting, ref bool hasStartedLocal)
+{
+	// Writing the Field
+	if(setting.isLocalScope)
+    {
+		if(!hasStartedLocal)
+        {
+			WriteLine("[Header(\"Local Values\")]");
+			hasStartedLocal = true;
+        }
+    }
+	else
+    {
+		WriteLine("[SerializeField]");	
+    }
+
+	Write("private ");
+	Write(setting.type);
+	Write(" m_");
+	Write(setting.name);
+	Write(" = ");
+	Write(setting.defaultValue);
+	WriteLine(";");
+}
+
+private void WriteProperty(AtomSettings setting)
+{
+	WriteLine("/// <summary>");
+	Write("/// ");
+	WriteLine(setting.comment);
+	if(setting.isLocalScope)
+    {
+		WriteLine("// This value is only saved on your local machine.");
+    }
+	else
+    {
+		WriteLine("//  This value is saved to the project settings of Atom.");
+    }
+	WriteLine("/// </summary>");
+	Write("public ");
+	Write(setting.type);
+	Write(" ");
+	WriteLine(setting.name);
+	WriteLine("{");
+	PushIndent("    ");
+    {
+		Write("get { return m_");
+		Write(setting.name);
+		WriteLine("; }");
+		Write("set { m_");
+		Write(setting.name);
+		WriteLine(" = value; }");
+    }
+	PopIndent();
+	WriteLine("}");
+}
+
 public void WriteLoadingEditorPrefs(AtomSettings setting)
 {
     Write(setting.name);
@@ -117,9 +184,9 @@ public void WriteLoadingEditorPrefs(AtomSettings setting)
         Write(setting.name);
         Write(":");
         Write(setting.type);
-        Write("\", defaultValue:@\"");
+        Write("\", defaultValue:@");
         Write(setting.defaultValue);
-        WriteLine("\");");
+        WriteLine(");");
     }
     else if(string.Compare(setting.type, "float", StringComparison.OrdinalIgnoreCase) == 0)
     {

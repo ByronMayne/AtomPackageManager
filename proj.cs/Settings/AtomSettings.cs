@@ -10,7 +10,9 @@ namespace AtomPackageManager
         [Header("Project Settings")]
         [SerializeField]
         private string m_UnityPath = "/Assets/Atom";
+
         [Header("Local Values")]
+        [SerializeField]
         private bool m_runInBackground = true;
 
         /// <summary>
@@ -22,6 +24,7 @@ namespace AtomPackageManager
             get { return m_UnityPath; }
             set { m_UnityPath = value; }
         }
+
         /// <summary>
         /// Should Atom run in the background and check for updates?
         // This value is only saved on your local machine.
@@ -31,6 +34,7 @@ namespace AtomPackageManager
             get { return m_runInBackground; }
             set { m_runInBackground = value; }
         }
+
         /// <summary>
         /// Loads all the settings from disk.
         /// </summary>

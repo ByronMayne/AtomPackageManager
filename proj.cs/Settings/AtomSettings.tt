@@ -32,7 +32,7 @@
         m_Settings.Add(newSetting);
     }
 
-	m_Settings.Sort( (lhs, rhs) => lhs.isLocalScope.CompareTo(rhs.isLocalScope));
+    m_Settings.Sort( (lhs, rhs) => lhs.isLocalScope.CompareTo(rhs.isLocalScope));
 #>
 using UnityEngine;
 using UnityEditor;
@@ -43,64 +43,65 @@ namespace AtomPackageManager
     public class AtomSettings
     {
 <#    
-	// Set our correct indent
-	PushIndent("        ");
-	// We want to write a header when we start using local values.
-	bool hasStartedLocal = false;
-	if(m_Settings.Count > 0)
+    // Set our correct indent
+    PushIndent("        ");
+    // We want to write a header when we start using local values.
+    bool hasStartedLocal = false;
+    if(m_Settings.Count > 0)
     {
-		WriteLine("[Header(\"Project Settings\")]");
+        WriteLine("[Header(\"Project Settings\")]");
     }
 
-	// Fields
-	for(int i = 0; i < m_Settings.Count; i++) 
-	{  
-		WriteField(m_Settings[i], ref hasStartedLocal);
+    // Fields
+    for(int i = 0; i < m_Settings.Count; i++) 
+    {  
+        WriteField(m_Settings[i], ref hasStartedLocal);
+        WriteLine("");
     }
-	WriteLine("");
 
-	// Properties
-	for(int i = 0; i < m_Settings.Count; i++) 
-	{  
-		WriteProperty(m_Settings[i]);
+    // Properties
+    for(int i = 0; i < m_Settings.Count; i++) 
+    {  
+        WriteProperty(m_Settings[i]);
+        WriteLine("");
     }
-	
-	// Loading Function
-	WriteLine("/// <summary>");
-	WriteLine("/// Loads all the settings from disk.");
-	WriteLine("/// </summary>");
-	WriteLine("public void Load()");
-	WriteLine("{");
-	PushIndent("    ");
+    
+    // Loading Function
+    WriteLine("/// <summary>");
+    WriteLine("/// Loads all the settings from disk.");
+    WriteLine("/// </summary>");
+    WriteLine("public void Load()");
+    WriteLine("{");
+    PushIndent("    ");
     {		
-		for(int i = 0; i < m_Settings.Count; i++) 
-		{  
-			WriteLoadingEditorPrefs(m_Settings[i]);
-		}
+        for(int i = 0; i < m_Settings.Count; i++) 
+        {  
+            WriteLoadingEditorPrefs(m_Settings[i]);
+        }
     }
-	PopIndent();
-	WriteLine("}");
+    PopIndent();
+    WriteLine("}");
 
-	// Space
-	WriteLine("");
+    // Space
+    WriteLine("");
 
-	// Saving Function
-	WriteLine("/// <summary>");
-	WriteLine("/// Writes all the settings to disk.");
-	WriteLine("/// </summary>");
-	WriteLine("public void Save()");
-	WriteLine("{");
-	PushIndent("    ");
+    // Saving Function
+    WriteLine("/// <summary>");
+    WriteLine("/// Writes all the settings to disk.");
+    WriteLine("/// </summary>");
+    WriteLine("public void Save()");
+    WriteLine("{");
+    PushIndent("    ");
     {
-		for(int i = 0; i < m_Settings.Count; i++) 
-		{  
-			WriteSavingEditorPrefs(m_Settings[i]);
-		}
+        for(int i = 0; i < m_Settings.Count; i++) 
+        {  
+            WriteSavingEditorPrefs(m_Settings[i]);
+        }
     }
-	PopIndent();
-	WriteLine("}");
+    PopIndent();
+    WriteLine("}");
 
-	ClearIndent();
+    ClearIndent();
 #>
     }
 }
@@ -108,59 +109,55 @@ namespace AtomPackageManager
 <#+ 
 private void WriteField(AtomSettings setting, ref bool hasStartedLocal)
 {
-	// Writing the Field
-	if(setting.isLocalScope)
+    // Writing the Field
+    if(setting.isLocalScope)
     {
-		if(!hasStartedLocal)
+        if(!hasStartedLocal)
         {
-			WriteLine("[Header(\"Local Values\")]");
-			hasStartedLocal = true;
+            WriteLine("[Header(\"Local Values\")]");
+            hasStartedLocal = true;
         }
     }
-	else
-    {
-		WriteLine("[SerializeField]");	
-    }
-
-	Write("private ");
-	Write(setting.type);
-	Write(" m_");
-	Write(setting.name);
-	Write(" = ");
-	Write(setting.defaultValue);
-	WriteLine(";");
+    WriteLine("[SerializeField]");	
+    Write("private ");
+    Write(setting.type);
+    Write(" m_");
+    Write(setting.name);
+    Write(" = ");
+    Write(setting.defaultValue);
+    WriteLine(";");
 }
 
 private void WriteProperty(AtomSettings setting)
 {
-	WriteLine("/// <summary>");
-	Write("/// ");
-	WriteLine(setting.comment);
-	if(setting.isLocalScope)
+    WriteLine("/// <summary>");
+    Write("/// ");
+    WriteLine(setting.comment);
+    if(setting.isLocalScope)
     {
-		WriteLine("// This value is only saved on your local machine.");
+        WriteLine("// This value is only saved on your local machine.");
     }
-	else
+    else
     {
-		WriteLine("//  This value is saved to the project settings of Atom.");
+        WriteLine("//  This value is saved to the project settings of Atom.");
     }
-	WriteLine("/// </summary>");
-	Write("public ");
-	Write(setting.type);
-	Write(" ");
-	WriteLine(setting.name);
-	WriteLine("{");
-	PushIndent("    ");
+    WriteLine("/// </summary>");
+    Write("public ");
+    Write(setting.type);
+    Write(" ");
+    WriteLine(setting.name);
+    WriteLine("{");
+    PushIndent("    ");
     {
-		Write("get { return m_");
-		Write(setting.name);
-		WriteLine("; }");
-		Write("set { m_");
-		Write(setting.name);
-		WriteLine(" = value; }");
+        Write("get { return m_");
+        Write(setting.name);
+        WriteLine("; }");
+        Write("set { m_");
+        Write(setting.name);
+        WriteLine(" = value; }");
     }
-	PopIndent();
-	WriteLine("}");
+    PopIndent();
+    WriteLine("}");
 }
 
 public void WriteLoadingEditorPrefs(AtomSettings setting)

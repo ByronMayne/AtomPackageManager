@@ -28,6 +28,7 @@ namespace AtomPackageManager
         [InitializeOnLoadMethod]
         private static void Initialize()
         {
+
             //  Try to grab our instance
             Atom instance = FindObjectOfType<Atom>();
             // Check if they are null
@@ -35,8 +36,14 @@ namespace AtomPackageManager
             {
                 instance = CreateInstance<Atom>();
             }
+
+            Debug.Log("Loaded Atom");
         }
 
+        public void Save()
+        {
+            m_PackageManager.Save();
+        }
 
         private void OnEnable()
         {
@@ -62,14 +69,6 @@ namespace AtomPackageManager
                 }
                 // Clean up or floating requests.
                 DestroyImmediate(importRequests[i]);
-            }
-
-            // Assign our Editor Window reference if it's open
-            PackageEditor editor = FindObjectOfType<PackageEditor>();
-            // Check if it's null
-            if(editor != null)
-            {
-                editor.AssignAtom(this);
             }
 
             // Append our solution

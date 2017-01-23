@@ -11,7 +11,6 @@ namespace AtomPackageManager
 {
     public class PackageEditor : EditorWindow
     {
-
         private string m_PackageSearchFilter = "";
 
         // Styles
@@ -32,7 +31,6 @@ namespace AtomPackageManager
         private int m_PackageSelectionIndex = -1;
 
         // Packages
-        private bool m_IsAddingPackage = false;
         private string m_NewPackageURL = "https://github.com/ByronMayne/UnityIO.git";
 
         // animated values
@@ -41,37 +39,17 @@ namespace AtomPackageManager
 
         // Serialized Data
         private SerializedObject m_SerializedAtom;
+        private SerializedProperty m_PackageManager;
+        private SerializedProperty m_PackagesList;
+        private SerializedProperty m_Settings;
+
+
         [SerializeField]
-        private GUIContent[] m_PackageLabels = new GUIContent[0];
         private Atom m_Atom;
 
         public void LoadSerializedValues()
         {
-            if (m_Atom != null)
-            {
-                // Grab the manager
-                m_SerializedAtom = new SerializedObject(m_Atom);
-                // Get our package manager
-                SerializedProperty packageManager = m_SerializedAtom.FindProperty("m_PackageManager");
-                // Find the nested packages.
-                SerializedProperty packagesList = packageManager.FindPropertyRelative("m_Packages");
-                // Create labels;
-                m_PackageLabels = new GUIContent[packagesList.arraySize];
-                // Create names
-                for (int i = 0; i < packagesList.arraySize; i++)
-                {
-                    var current = packagesList.GetArrayElementAtIndex(i);
-                    // Get the name
-                    m_PackageLabels[i] = new GUIContent(current.FindPropertyRelative("m_PackageName").stringValue);
-                }
 
-            }
-        }
-
-        public void AssignAtom(Atom atom)
-        {
-            m_Atom = atom;
-            LoadSerializedValues();
         }
 
         private void SaveSerilaizedValues()
@@ -100,9 +78,17 @@ namespace AtomPackageManager
 
         private void OnEnable()
         {
-            AssignAtom(FindObjectOfType<Atom>());
-            LoadSerializedValues();
-
+            Debug.Log("Editor Enabled");
+            // Load Atom
+            m_Atom = FindObjectOfType<Atom>();
+            // Grab the manager
+            m_SerializedAtom = new SerializedObject(m_Atom);
+            // Get our package manager
+            m_PackageManager = m_SerializedAtom.FindProperty("m_PackageManager");
+            // Find the nested packages.
+            m_PackagesList = m_PackageManager.FindPropertyRelative("m_Packages");
+            // Get our settings
+            m_Settings = m_PackageManager.FindPropertyRelative("m_Settings");
             // Create Serialized Values
             m_AddRepositoryPackageEditorOpen = new AnimBool(false);
             m_SettingsEditorOpen = new AnimBool(false);
@@ -118,12 +104,9 @@ namespace AtomPackageManager
 
         private void OnGUI()
         {
-            if (m_SerializedAtom != null)
-            {
-                LoadStyles();
-                DrawToolbar();
-                DrawContentArea();
-            }
+            LoadStyles();
+            DrawToolbar();
+            DrawContentArea();
         }
 
         private void DrawToolbar()
@@ -243,8 +226,6 @@ namespace AtomPackageManager
             // Changes the mouse icon to an left right arrow to show the user they can slide the values. 
             EditorGUIUtility.AddCursorRect(dragRect, MouseCursor.SplitResizeLeftRight);
 
-            //GUI.Box(dragRect, GUIContent.none);
-
             if (Event.current.type == EventType.MouseDrag && m_IsResizingList)
             {
                 // Update our position.
@@ -292,33 +273,33 @@ namespace AtomPackageManager
 
             GUILayout.BeginArea(packageListRect);
             {
-                GUILayout.BeginVertical(GUI.skin.box);
+                if (EditorGUILayout.BeginFadeGroup(m_AddRepositoryPackageEditorOpen.faded))
                 {
-                    if (EditorGUILayout.BeginFadeGroup(m_AddRepositoryPackageEditorOpen.faded))
+                    m_NewPackageURL = EditorGUILayout.TextField(m_NewPackageURL);
+                    GUILayout.BeginHorizontal();
                     {
-                        m_NewPackageURL = EditorGUILayout.TextField(m_NewPackageURL);
-                        GUILayout.BeginHorizontal();
+                        if (GUILayout.Button("Add", EditorStyles.miniButtonLeft))
                         {
-                            if (GUILayout.Button("Add", EditorStyles.miniButtonLeft))
-                            {
-                                m_Atom.Clone(m_NewPackageURL, Constants.SCRIPT_IMPORT_DIRECTORY);
-                                m_AddRepositoryPackageEditorOpen.target = false;
-                            }
-
-                            if (GUILayout.Button("Cancel", EditorStyles.miniButtonRight))
-                            {
-                                m_AddRepositoryPackageEditorOpen.target = false;
-                            }
+                            m_Atom.Clone(m_NewPackageURL, Constants.SCRIPT_IMPORT_DIRECTORY);
+                            m_AddRepositoryPackageEditorOpen.target = false;
                         }
-                        GUILayout.EndHorizontal();
+
+                        if (GUILayout.Button("Cancel", EditorStyles.miniButtonRight))
+                        {
+                            m_AddRepositoryPackageEditorOpen.target = false;
+                        }
                     }
+                    GUILayout.EndHorizontal();
+
                 }
                 EditorGUILayout.EndFadeGroup();
 
+                GUILayout.Space(3.0f);
+                GUILayout.Box(GUIContent.none, GUILayout.ExpandWidth(true), GUILayout.Height(3.0f));
+
                 m_PackageListScrollPosition = EditorGUILayout.BeginScrollView(m_PackageListScrollPosition, (GUIStyle)"AnimationCurveEditorBackground");
                 {
-                    SerializedProperty packageManager = m_SerializedAtom.FindProperty("m_PackageManager");
-                    SerializedProperty packages = packageManager.FindPropertyRelative("m_Packages");
+
 
                     GUIStyle buttonStyle = new GUIStyle(EditorStyles.miniButtonMid);
 
@@ -329,13 +310,13 @@ namespace AtomPackageManager
                     buttonStyle.margin = new RectOffset(0, 0, 2, 0);
                     buttonStyle.fontStyle = FontStyle.Bold;
 
-                    for (int i = 0; i < packages.arraySize; i++)
+                    for (int i = 0; i < m_PackagesList.arraySize; i++)
                     {
-                        SerializedProperty current = packages.GetArrayElementAtIndex(i);
-                        if (current != null)
+                        SerializedProperty currentPackage = m_PackagesList.GetArrayElementAtIndex(i);
+                        if (currentPackage != null)
                         {
 
-                            SerializedProperty name = current.FindPropertyRelative("m_PackageName");
+                            SerializedProperty name = currentPackage.FindPropertyRelative("m_PackageName");
 
                             GUIContent label = new GUIContent(name.stringValue);
                             Rect toggleRect = GUILayoutUtility.GetRect(label, buttonStyle);
@@ -387,21 +368,31 @@ namespace AtomPackageManager
                         }
                         else
                         {
-                            packages.DeleteArrayElementAtIndex(i);
+                            m_PackagesList.DeleteArrayElementAtIndex(i);
                         }
                     }
                     GUILayout.FlexibleSpace();
                 }
                 EditorGUILayout.EndScrollView();
 
-
                 GUILayout.Box(GUIContent.none, GUILayout.ExpandWidth(true), GUILayout.Height(3.0f));
+
+                GUILayout.Space(3.0f);
 
                 if (EditorGUILayout.BeginFadeGroup(m_SettingsEditorOpen.faded))
                 {
-                    GUILayout.Label(Labels.settingsLocalCatagory, EditorStyles.boldLabel);
+                    SerializedProperty settingsCopy = m_Settings.Copy();
+                    settingsCopy.NextVisible(true);
+                    do
+                    {
+                        EditorGUILayout.PropertyField(settingsCopy, true);
+                    } while (settingsCopy.NextVisible(false));
 
-                    GUILayout.Label(Labels.settingsProjectCatagory, EditorStyles.boldLabel);
+                    if (GUILayout.Button("Save Settings"))
+                    {
+                        m_SettingsEditorOpen.target = false;
+                        m_Atom.Save();
+                    }
                 }
                 EditorGUILayout.EndFadeGroup();
             }
@@ -410,17 +401,16 @@ namespace AtomPackageManager
 
         private void DrawContentArea(Rect packageInfoRect)
         {
-            SerializedProperty packages = m_SerializedAtom.FindProperty("m_PackageManager").FindPropertyRelative("m_Packages");
-            bool hasPackageSelected = m_PackageSelectionIndex > -1 && m_PackageSelectionIndex < packages.arraySize;
+
+            bool hasPackageSelected = m_PackageSelectionIndex > -1 && m_PackageSelectionIndex < m_PackagesList.arraySize;
+
             GUILayout.BeginArea(packageInfoRect);
             {
                 m_PackageInfoScrollPosition = EditorGUILayout.BeginScrollView(m_PackageInfoScrollPosition);
                 {
-
-
                     if (hasPackageSelected)
                     {
-                        EditorGUILayout.PropertyField(packages.GetArrayElementAtIndex(m_PackageSelectionIndex), true);
+                        EditorGUILayout.PropertyField(m_PackagesList.GetArrayElementAtIndex(m_PackageSelectionIndex), true);
                     }
                     else
                     {
@@ -448,10 +438,8 @@ namespace AtomPackageManager
                             OnRemovePackageButtonPressed();
                         }
                     }
+                    GUILayout.EndHorizontal();
                 }
-
-                GUILayout.EndHorizontal();
-
             }
             GUILayout.EndArea();
         }

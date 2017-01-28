@@ -117,6 +117,15 @@ namespace AtomPackageManager
 
         public void Clone(string repositoryURL, string workingDirectory)
         {
+            for(int i = 0; i < m_PackageManager.packages.Count; i++)
+            {
+                if(m_PackageManager.packages[i].contentURL == repositoryURL)
+                {
+                    EditorUtility.DisplayDialog("Repository Already Cloned", "The repository '" + repositoryURL + "' is already cloned on disk and in Atom", "Okay");
+                    return;
+                }
+            }
+
             ISourceControlService sourceControlService = m_ISourceControlServiceTemplate.CreateCopy();
             sourceControlService.Clone(repositoryURL, workingDirectory, m_PackageManager.CloneComplete);
         }

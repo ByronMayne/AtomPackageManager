@@ -1,7 +1,30 @@
 ﻿using System;
+
 namespace AtomPackageManager.Services
 {
     public delegate void OnCloneCompletedDelegate(ISourceControlService service);
+
+    [AttributeUsage(AttributeTargets.Class)]
+    public class SourceControlProviderAttribute : Attribute
+    {
+        private string m_StaticValidationFunctionName;
+
+        public string staticValidationFunctionName
+        {
+            get { return m_StaticValidationFunctionName; }
+        }
+
+        /// <summary>
+        /// Used above a class that inherits from <see cref="ISourceControlService"/>. This
+        /// is used to allow Atom to call the static function defined to see if this the url
+        /// is valid. 
+        /// </summary>
+        /// <param name="staticValidationFunction"></param>
+        public SourceControlProviderAttribute(string staticValidationFunction)
+        {
+            m_StaticValidationFunctionName = staticValidationFunction;
+        }
+    }
 
     public interface ISourceControlService
     {
@@ -13,7 +36,7 @@ namespace AtomPackageManager.Services
         /// <summary>
         /// The directory where we will be cloning our repository into.
         /// </summary>
-        string workingDirectory { get; }
+        string directory { get; }
 
         /// <summary>
         /// Was the clone successful?

@@ -63,6 +63,8 @@
       <DependentUpon>PluginPlatforms.tt</DependentUpon>
     </Compile>
     <Compile Include="PathHelpers.cs" />
+    <Compile Include="Popups\AtomPopup.cs" />
+    <Compile Include="Popups\MessagePopup.cs" />
     <Compile Include="Resolvers\AssemblyReferenceResolver.cs" />
     <Compile Include="Resolvers\UnresolvedAssemblyException.cs" />
     <Compile Include="Services\Implementations\CodeDomCompilerService.cs" />

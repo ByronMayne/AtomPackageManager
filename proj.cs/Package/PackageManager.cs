@@ -44,7 +44,7 @@ namespace AtomPackageManager
         public void Load()
         {
             // Check if it exists
-            if(File.Exists(FilePaths.packageManagerPath))
+            if (File.Exists(FilePaths.packageManagerPath))
             {
                 // Read the json
                 string json = File.ReadAllText(FilePaths.packageManagerPath);
@@ -67,20 +67,24 @@ namespace AtomPackageManager
         /// <param name="directory"></param>
         public void CloneComplete(ISourceControlService service)
         {
-            Debug.Log("Clone Complete: " + service.workingDirectory);
-            // Try to find the atom.yaml in the root
-            string[] files = Directory.GetFiles(service.workingDirectory, "*.atom");
-
-            // Do we have any results?
-            for (int i = 0; i < files.Length; i++)
+            Debug.Log("Succ: " + service.wasSuccessful);
+            if (service.wasSuccessful)
             {
-                LoadAtomFileAtPath(files[i]);
-            }
+                Debug.Log("Clone Complete: " + service.directory);
+                // Try to find the atom.yaml in the root
+                string[] files = Directory.GetFiles(service.directory, "*.atom");
 
-            PackageEditor editor = Object.FindObjectOfType<PackageEditor>();
-            if(editor != null)
-            {
-                editor.LoadSerializedValues();
+                // Do we have any results?
+                for (int i = 0; i < files.Length; i++)
+                {
+                    LoadAtomFileAtPath(files[i]);
+                }
+
+                PackageEditor editor = Object.FindObjectOfType<PackageEditor>();
+                if (editor != null)
+                {
+                    editor.LoadSerializedValues();
+                }
             }
         }
 
@@ -90,7 +94,7 @@ namespace AtomPackageManager
         /// <param name="assetPath"></param>
         public void LoadAtomFileAtPath(string assetPath)
         {
-            if(string.IsNullOrEmpty(assetPath))
+            if (string.IsNullOrEmpty(assetPath))
             {
                 throw new System.ArgumentNullException("assetPath", "The asset path of the file loaded was null. Can't parse an empty path");
             }

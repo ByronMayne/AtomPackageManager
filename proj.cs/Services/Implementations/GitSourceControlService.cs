@@ -76,8 +76,7 @@ namespace AtomPackageManager.Services
 
             if(!repositoryURL.EndsWith(".git"))
             {
-                MessagePopup.ShowSimpleMessage(EditorWindow.GetWindow<PackageEditor>(), 
-                                               "Invalid git URL", "The url '" +
+                MessagePopup.ShowSimpleMessage("Invalid git URL", "The url '" +
                                                 repositoryURL + 
                                                 "' is invalid. All repositories must end with the extension .git. Please correct the URL and try again",
                                                 MessagePopup.Type.Error);
@@ -178,7 +177,10 @@ namespace AtomPackageManager.Services
         {
             if(!string.IsNullOrEmpty(outLine.Data))
             {
-                UnityEngine.Debug.LogError(outLine.Data);
+                MessagePopup.ShowSimpleMessage( "Git Clone Error", "An error was received when trying to clone the following repository '" +
+                                                repositoryURL +
+                                                "'. " + System.Environment.NewLine + outLine.Data,
+                                                MessagePopup.Type.Error);
             }
         }
 

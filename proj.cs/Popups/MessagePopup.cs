@@ -1,4 +1,5 @@
-﻿using UnityEditor;
+﻿using System.Threading;
+using UnityEditor;
 using UnityEngine;
 
 namespace AtomPackageManager.Popups
@@ -31,13 +32,21 @@ namespace AtomPackageManager.Popups
         private GUIContent m_LogIcon;
         private GUIContent m_OkayButtonLabel;
 
-        public static void ShowSimpleMessage(EditorWindow owner, string title, string message, Type logType = Type.Log)
+        public static void ShowSimpleMessage(string title, string message, Type logType = Type.Log)
         {
-            ShowSimpleMessage(owner, title, message, "Okay", logType);
+            ShowSimpleMessage(title, message, "Okay", logType);
         }
 
-        public static void ShowSimpleMessage(EditorWindow owner, string title, string message, string okayButtonName, Type logType = Type.Log)
+        public static void ShowSimpleMessage(string title, string message, string okayButtonName, Type logType = Type.Log)
         {
+            // Make sure we are on the main thread
+            if(!IsMainThread)
+            {
+                // Force us back on the main thread.
+                EditorApplication.delayCall += () => ShowSimpleMessage(title, message, okayButtonName, logType);
+                // Break out.
+                return;
+            }
             // Create a instance
             MessagePopup messagePopup = CreateInstance<MessagePopup>();
             // Save our type
@@ -51,7 +60,7 @@ namespace AtomPackageManager.Popups
             // Load our icon
             messagePopup.LodIcon();
             // Show it
-            messagePopup.Initialize(owner);
+            messagePopup.Initialize();
         }
 
         protected void LodIcon()

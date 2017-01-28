@@ -1,28 +1,47 @@
 ﻿using System;
+using System.Threading;
 using UnityEditor;
 using UnityEngine;
 
 namespace AtomPackageManager.Popups
 {
+    [InitializeOnLoad]
     public class AtomPopup : EditorWindow
     {
         private string m_Title = "Atom Popup";
-        private EditorWindow m_Owner; 
+        private EditorWindow m_Owner;
+        protected static int m_MainThreadID;
 
-        protected virtual void Initialize(EditorWindow owner)
+        /// <summary>
+        /// Invoked by Unity when it's created. We use this to capture the
+        /// main thread ID so we know when we have to delay showing a dialog. 
+        /// </summary>
+        static AtomPopup()
         {
-            m_Owner = owner;
+            m_MainThreadID = Thread.CurrentThread.ManagedThreadId;
+        }
+
+        /// <summary>
+        /// Returns true if this is the current thread and false if it's not.
+        /// </summary>
+        protected static bool IsMainThread
+        {
+            get { return m_MainThreadID == Thread.CurrentThread.ManagedThreadId; }
+        }
+
+        protected virtual void Initialize()
+        {
+            m_Owner = GetWindow<PackageEditor>();
             // Set it's title
             titleContent = new GUIContent(windowTitle);
-            // Show it
-            ShowAuxWindow();
+
             // Create a rect
             Rect displayRect = new Rect();
             // Get our size. 
             Vector2 popupSize = GetWindowSize();
             // Center the window to the middle of the editor window. 
-            displayRect.x = ((owner.position.width - popupSize.x) * 0.5f) + owner.position.x;
-            displayRect.y = ((owner.position.height - popupSize.y) * 0.5f) + owner.position.y;
+            displayRect.x = ((m_Owner.position.width - popupSize.x) * 0.5f) + m_Owner.position.x;
+            displayRect.y = ((m_Owner.position.height - popupSize.y) * 0.5f) + m_Owner.position.y;
             // Default the width and height. 
             displayRect.width = popupSize.x;
             displayRect.height = popupSize.y;
@@ -30,8 +49,13 @@ namespace AtomPackageManager.Popups
             position = displayRect;
             maxSize = popupSize;
             minSize = popupSize;
-            // Exit the GUI
-            GUIUtility.ExitGUI();
+            // Exit the GUI if we were invoked from a GUI scope.
+            // Show it
+            ShowAuxWindow();
+            if (Event.current != null)
+            {
+                GUIUtility.ExitGUI();
+            }
         }
 
         public virtual string windowTitle

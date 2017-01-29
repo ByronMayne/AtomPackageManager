@@ -17,7 +17,7 @@ namespace AtomPackageManager.Services
         /// <summary>
         /// The result of our compiling.
         /// </summary>
-        private CompilerResults m_CompileResults;
+        private CompilerErrorCollection m_CompileResults;
 
         /// <summary>
         /// Returns if the compile was successful or not. 
@@ -26,7 +26,7 @@ namespace AtomPackageManager.Services
         {
             get
             {
-                return !m_CompileResults.Errors.HasErrors;
+                return !m_CompileResults.HasErrors;
             }
         }
 
@@ -36,6 +36,12 @@ namespace AtomPackageManager.Services
         /// <param name="package"></param>
         public void CompilePackage(AtomPackage package, OnCompileCompleteDelegate onComplete)
         {
+            // Stop us from compiling. 
+            EditorApplication.LockReloadAssemblies();
+
+            // Create new error collection
+            m_CompileResults = new CompilerErrorCollection();
+
             // Loop over all assemblies
             foreach (AtomAssembly assembly in package.assemblies)
             {
@@ -85,7 +91,7 @@ namespace AtomPackageManager.Services
                 // Make sure there was no error
                 if(resolvedAssemblyPaths == null || resolvedAssemblyPaths.Length == 0)
                 {
-                    return;
+                    continue;
                 }
                 // Add them to our compiler
                 parameters.ReferencedAssemblies.AddRange(resolvedAssemblyPaths);
@@ -102,7 +108,9 @@ namespace AtomPackageManager.Services
                 // And if we should treat warnings as errors
                 parameters.TreatWarningsAsErrors = false;
                 // Create a new results object
-                m_CompileResults = codeProvider.CompileAssemblyFromFile(parameters, scriptsToCompile);
+                var results = codeProvider.CompileAssemblyFromFile(parameters, scriptsToCompile);
+                // Add to our global errors.
+                m_CompileResults.AddRange(results.Errors);
             }
 
             // Fire our callback
@@ -110,7 +118,8 @@ namespace AtomPackageManager.Services
             {
                 onComplete(this, package);
             }
-
+            // Now we can reload
+            EditorApplication.UnlockReloadAssemblies();
         }
 
         /// <summary>
@@ -126,7 +135,7 @@ namespace AtomPackageManager.Services
         /// </summary>
         public CompilerErrorCollection GetErrors()
         {
-            return m_CompileResults.Errors;
+            return m_CompileResults;
         }
 
         /// <summary>

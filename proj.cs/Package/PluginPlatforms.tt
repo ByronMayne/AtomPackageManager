@@ -67,7 +67,6 @@ public class PluginPlatforms
         {
             importer.SetCompatibleWithPlatform(BuildTarget.<#=validTargets[i]#>, <#=validTargets[i]#>Compatible);
             hadChanges = true;
-			Debug.Log("Change: " + "<#=validTargets[i]#>");
         }
 <#
 	} 

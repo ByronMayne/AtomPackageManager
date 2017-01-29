@@ -11,6 +11,7 @@ namespace AtomPackageManager.Popups
         private string m_Title = "Atom Popup";
         private EditorWindow m_Owner;
         protected static int m_MainThreadID;
+        private GUIStyle m_MessageStyle;
 
         /// <summary>
         /// Invoked by Unity when it's created. We use this to capture the
@@ -19,6 +20,23 @@ namespace AtomPackageManager.Popups
         static AtomPopup()
         {
             m_MainThreadID = Thread.CurrentThread.ManagedThreadId;
+        }
+
+        /// <summary>
+        /// Gets the style that we use for our messages.
+        /// </summary>
+        protected GUIStyle messageStyle
+        {
+            get
+            {
+                if(m_MessageStyle == null)
+                {
+                    m_MessageStyle = new GUIStyle(EditorStyles.label);
+                    m_MessageStyle.wordWrap = true;
+                    m_MessageStyle.richText = true;
+                }
+                return m_MessageStyle;
+            }
         }
 
         /// <summary>

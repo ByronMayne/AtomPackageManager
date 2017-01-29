@@ -20,6 +20,15 @@ namespace AtomPackageManager.Packages
         private string m_SolutionPath = string.Empty;
 
         [SerializeField]
+        private int m_LocalChanges = 0;
+
+        [SerializeField]
+        private int m_LocalDeletions = 1;
+
+        [SerializeField]
+        private int m_LocalNewFiles = 2;
+
+        [SerializeField]
         private List<AtomAssembly> m_Assemblies = new List<AtomAssembly>();
 
         /// <summary>

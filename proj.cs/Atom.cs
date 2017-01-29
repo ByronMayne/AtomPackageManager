@@ -28,7 +28,6 @@ namespace AtomPackageManager
         [InitializeOnLoadMethod]
         private static void Initialize()
         {
-
             //  Try to grab our instance
             Atom instance = FindObjectOfType<Atom>();
             // Check if they are null
@@ -36,8 +35,6 @@ namespace AtomPackageManager
             {
                 instance = CreateInstance<Atom>();
             }
-
-            Debug.Log("Loaded Atom");
         }
 
         public void Save()

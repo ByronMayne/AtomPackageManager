@@ -81,7 +81,12 @@ namespace AtomPackageManager.Services
                 // Create our return 
                 string[] resolvedAssemblyPaths = null;
                 // Use the assembly resolver
-                resolvedAssemblyPaths = AssemblyReferenceResolver.ResolveAssemblyPaths(referencedAssemblies);
+                resolvedAssemblyPaths = AssemblyReferenceResolver.ResolveAssemblyPaths(assembly);
+                // Make sure there was no error
+                if(resolvedAssemblyPaths == null || resolvedAssemblyPaths.Length == 0)
+                {
+                    return;
+                }
                 // Add them to our compiler
                 parameters.ReferencedAssemblies.AddRange(resolvedAssemblyPaths);
                 // We want UnityEngine

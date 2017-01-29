@@ -64,6 +64,7 @@
     </Compile>
     <Compile Include="PathHelpers.cs" />
     <Compile Include="Popups\AtomPopup.cs" />
+    <Compile Include="Popups\SimpeChoiceDialog.cs" />
     <Compile Include="Popups\MessagePopup.cs" />
     <Compile Include="Resolvers\AssemblyReferenceResolver.cs" />
     <Compile Include="Resolvers\UnresolvedAssemblyException.cs" />

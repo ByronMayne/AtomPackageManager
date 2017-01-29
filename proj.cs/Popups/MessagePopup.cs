@@ -27,10 +27,10 @@ namespace AtomPackageManager.Popups
             Error
         }
 
-        private GUIContent m_Message;
+        protected GUIContent m_Message;
         private Type m_Type;
-        private GUIContent m_LogIcon;
-        private GUIContent m_OkayButtonLabel;
+        protected GUIContent m_LogIcon;
+        protected GUIContent m_OkayButtonLabel;
 
         public static void ShowSimpleMessage(string title, string message, Type logType = Type.Log)
         {
@@ -88,7 +88,7 @@ namespace AtomPackageManager.Popups
             // Get our default size
             Vector2 size = base.GetWindowSize();
             // Get our message content size height in the y.
-            size.y = EditorStyles.wordWrappedLabel.CalcHeight(m_Message, size.x);
+            size.y = messageStyle.CalcHeight(m_Message, size.x);
             // Add one row for your buttons
             size.y += EditorGUIUtility.singleLineHeight * 5;
             // Return it.
@@ -100,7 +100,7 @@ namespace AtomPackageManager.Popups
             GUILayout.Box(m_LogIcon, GUIStyle.none);
 
             // Draw our message
-            GUILayout.Box(m_Message, EditorStyles.wordWrappedLabel);
+            GUILayout.Box(m_Message, messageStyle);
 
             GUILayout.Box(GUIContent.none, GUILayout.ExpandWidth(true), GUILayout.Height(3.0f));
         }

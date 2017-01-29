@@ -79,7 +79,6 @@ namespace AtomPackageManager
 
         private void OnEnable()
         {
-            Debug.Log("Editor Enabled");
             // Load Atom
             m_Atom = FindObjectOfType<Atom>();
             // Grab the manager
@@ -320,17 +319,30 @@ namespace AtomPackageManager
                             SerializedProperty name = currentPackage.FindPropertyRelative("m_PackageName");
 
                             GUIContent label = new GUIContent(name.stringValue);
-                            Rect toggleRect = GUILayoutUtility.GetRect(label, buttonStyle);
+                            //Rect toggleRect = GUILayoutUtility.GetRect(label, buttonStyle);
 
                             bool startingValue = m_PackageSelectionIndex == i;
-                            bool isMouseOver = toggleRect.Contains(Event.current.mousePosition);
-                            int controlID = GUIUtility.GetControlID(FocusType.Passive, toggleRect);
+                            //bool isMouseOver = toggleRect.Contains(Event.current.mousePosition);
+                            //int controlID = GUIUtility.GetControlID(FocusType.Passive, toggleRect);
 
-                            if (Event.current.type == EventType.Repaint)
+                            GUILayout.BeginVertical(label, GUI.skin.window);
                             {
-                                buttonStyle.Draw(toggleRect, label, controlID, m_PackageSelectionIndex == i);
+                                GUILayout.BeginHorizontal();
+                                {
+                                    GUILayout.FlexibleSpace();
+                                    GUILayout.Label(currentPackage.FindPropertyRelative("m_LocalChanges").intValue.ToString(), "sv_label_0");
+                                    GUILayout.Space(4);
+                                    GUILayout.Label(currentPackage.FindPropertyRelative("m_LocalDeletions").intValue.ToString(), "sv_label_6");
+                                    GUILayout.Space(4);
+                                    GUILayout.Label(currentPackage.FindPropertyRelative("m_LocalNewFiles").intValue.ToString(), "sv_label_3");
+                                }
+                                GUILayout.EndHorizontal();
                             }
+                            GUILayout.EndVertical();
 
+                            Rect rect = GUILayoutUtility.GetLastRect();
+                            //GUI.Box(rect, GUIContent.none, (GUIStyle)"ControlHighlight");
+                            /*
                             switch (Event.current.GetTypeForControl(controlID))
                             {
                                 case EventType.MouseDown:
@@ -362,10 +374,10 @@ namespace AtomPackageManager
                                     break;
                                 case EventType.Repaint:
                                     {
-                                        buttonStyle.Draw(toggleRect, label, i == m_PackageSelectionIndex && (GUI.enabled || controlID == GUIUtility.hotControl) && (controlID == GUIUtility.hotControl || GUIUtility.hotControl == 0), controlID == GUIUtility.hotControl && GUI.enabled, i == m_PackageSelectionIndex, false);
                                     }
                                     break;
                             }
+                            */
                         }
                         else
                         {
@@ -461,6 +473,9 @@ namespace AtomPackageManager
 
         private void OnCompilePackageButtonPressed()
         {
+            GUIUtility.hotControl = -1;
+            GUIUtility.keyboardControl = -1;
+
             // Get the current
             m_SerializedAtom.ApplyModifiedProperties();
 
@@ -468,6 +483,9 @@ namespace AtomPackageManager
             AtomPackage package = m_Atom.packageManager.packages[m_PackageSelectionIndex];
 
             m_Atom.CompilePackage(package);
+
+            // Refresh our objects
+            m_SerializedAtom.UpdateIfDirtyOrScript();
         }
 
         private void OnRemovePackageButtonPressed()

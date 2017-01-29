@@ -21,10 +21,10 @@ namespace AtomPackageManager.Services
         /// </summary>
         private CompilerErrorCollection m_CompileResults;
 
+        private AtomAssembly m_Assembly;
         private AtomPackage m_Package;
         private PackageManager m_PackageManager;
         private OnCompileCompleteDelegate m_OnComplete;
-        private bool m_IsComplete;
 
         /// <summary>
         /// Returns if the compile was successful or not. 
@@ -37,104 +37,132 @@ namespace AtomPackageManager.Services
             }
         }
 
-        public void CompilePackage(AtomPackage package, PackageManager packageManager, OnCompileCompleteDelegate onComplete)
+        public void CompilePackage(AtomPackage package, int assemblyIndex, PackageManager packageManager, OnCompileCompleteDelegate onComplete)
         {
             // Assign our locals
             m_Package = package;
+            m_Assembly = package.assemblies[assemblyIndex];
             m_PackageManager = packageManager;
             m_OnComplete = onComplete;
-            StartThread();
+            // Create new error collection
+            m_CompileResults = new CompilerErrorCollection();
+            // Loop over all assemblies
+            if (!m_Assembly.isQueuedForCompile)
+            {
+                m_Assembly.isQueuedForCompile = true;
+                m_Assembly.compilingRoutine = this;
+                StartThread();
+            }
+            else
+            {
+                OnOperationComplete();
+                return;
+            }
         }
 
         protected override void OnOperationStarted()
         {
-            EditorApplication.LockReloadAssemblies(); 
+            EditorApplication.LockReloadAssemblies();
         }
 
         protected override IEnumerator<RoutineInstructions> ProcessOperation()
         {
-            // Create new error collection
-            m_CompileResults = new CompilerErrorCollection();
+  
 
-            // Loop over all assemblies
-            foreach (AtomAssembly assembly in m_Package.assemblies)
+            string directory = Path.GetDirectoryName(m_Assembly.systemAssetPath);
+
+            // Validate our output detestation exists. 
+            if (!Directory.Exists(directory))
             {
-                string directory = Path.GetDirectoryName(assembly.systemAssetPath);
-
-                // Validate our output detestation exists. 
-                if (!Directory.Exists(directory))
-                {
-                    Directory.CreateDirectory(directory);
-                }
-
-                // Create a new array
-                string[] scriptsToCompile = new string[assembly.compiledScripts.Count];
-                // Make our paths
-                for (int i = 0; i < scriptsToCompile.Length; i++)
-                {
-                    // Build our path
-                    string rootPath = Constants.SCRIPT_IMPORT_DIRECTORY + m_Package.packageName;
-                    //Debug.Log("Root: " + rootPath);
-                    // Add the local script path
-                    string scriptPath = rootPath + Path.DirectorySeparatorChar + assembly.compiledScripts[i];
-                    //Debug.Log("Script Path: " + assembly.compiledScripts[i]);
-                    // Set our path.
-                    scriptsToCompile[i] = scriptPath;
-                }
-
-                // Create our provider options
-                Dictionary<string, string> providerOptions = new Dictionary<string, string>();
-                // Add our compiler version
-                providerOptions.Add("CompilerVersion", "v3.5");
-                // Create our provider
-                CSharpCodeProvider codeProvider = new CSharpCodeProvider(providerOptions);
-                // Setup our parameters.
-                CompilerParameters parameters = new CompilerParameters();
-                // We are not making an exe but a dll.
-                parameters.GenerateExecutable = false;
-                // Where we are outputting
-                parameters.OutputAssembly = assembly.systemAssetPath + assembly.assemblyName + ".dll";
-                // If we should be debug symbols
-                parameters.IncludeDebugInformation = true; // TODO an option
-                // Get our reference names (this is only the 'UnityENgine' instead of the system path which we need
-                IList<string> referencedAssemblies = assembly.references;
-                // Create our return 
-                string[] resolvedAssemblyPaths = null;
-
-                // Check if we have to yield on other processes
-                yield return RoutineInstructions.ContinueOnMainThread;
-
-                // Use the assembly resolver
-                resolvedAssemblyPaths = AssemblyReferenceResolver.ResolveAssemblyPaths(assembly, m_PackageManager);
-
-                // Check if we have to yield on other processes
-                yield return RoutineInstructions.ContinueOnThread;
-
-                // Make sure there was no error
-                if (resolvedAssemblyPaths == null || resolvedAssemblyPaths.Length == 0)
-                {
-                    continue;
-                }
-                // Add them to our compiler
-                parameters.ReferencedAssemblies.AddRange(resolvedAssemblyPaths);
-                // We want UnityEngine
-                parameters.ReferencedAssemblies.Add(GetAssemblyLocation<MonoBehaviour>());
-                // and System
-                parameters.ReferencedAssemblies.Add(GetAssemblyLocation<Action>());
-                // And the editor
-                parameters.ReferencedAssemblies.Add(GetAssemblyLocation<Editor>());
-                // We don't want to load in memory
-                parameters.GenerateInMemory = false;
-                // Set our warning level
-                parameters.WarningLevel = 3;
-                // And if we should treat warnings as errors
-                parameters.TreatWarningsAsErrors = false;
-                // Create a new results object
-                var results = codeProvider.CompileAssemblyFromFile(parameters, scriptsToCompile);
-                // Add to our global errors.
-                m_CompileResults.AddRange(results.Errors);
+                Directory.CreateDirectory(directory);
             }
-            m_IsComplete = true;
+
+            // Create a new array
+            string[] scriptsToCompile = new string[m_Assembly.compiledScripts.Count];
+            // Make our paths
+            for (int i = 0; i < scriptsToCompile.Length; i++)
+            {
+                // Build our path
+                string rootPath = Constants.SCRIPT_IMPORT_DIRECTORY + m_Package.packageName;
+                //Debug.Log("Root: " + rootPath);
+                // Add the local script path
+                string scriptPath = rootPath + Path.DirectorySeparatorChar + m_Assembly.compiledScripts[i];
+                //Debug.Log("Script Path: " + assembly.compiledScripts[i]);
+                // Set our path.
+                scriptsToCompile[i] = scriptPath;
+            }
+
+            // Create our provider options
+            Dictionary<string, string> providerOptions = new Dictionary<string, string>();
+            // Add our compiler version
+            providerOptions.Add("CompilerVersion", "v3.5");
+            // Create our provider
+            CSharpCodeProvider codeProvider = new CSharpCodeProvider(providerOptions);
+            // Setup our parameters.
+            CompilerParameters parameters = new CompilerParameters();
+            // We are not making an exe but a dll.
+            parameters.GenerateExecutable = false;
+            // Where we are outputting
+            parameters.OutputAssembly = m_Assembly.systemAssetPath + m_Assembly.assemblyName + ".dll";
+            // If we should be debug symbols
+            parameters.IncludeDebugInformation = true; // TODO an option
+                                                       // Get our reference names (this is only the 'UnityENgine' instead of the system path which we need
+            IList<string> referencedAssemblies = m_Assembly.references;
+            // Create our return 
+            string[] resolvedAssemblyPaths = null;
+
+            // Check if we have to yield on other processes
+            yield return RoutineInstructions.ContinueOnMainThread;
+
+            // Use the assembly resolver
+            resolvedAssemblyPaths = AssemblyReferenceResolver.ResolveAssemblyPaths(m_Assembly, m_PackageManager);
+            // Check which ones we have to compile first
+            foreach (AtomPackage atomPackage in m_PackageManager.packages)
+            {
+                for (int assemblyIndex = 0; assemblyIndex < atomPackage.assemblies.Count; assemblyIndex++)
+                {
+                    foreach (string atomReferenceName in m_Assembly.references)
+                    {
+                        AtomAssembly current = atomPackage.assemblies[assemblyIndex];
+                        if (string.CompareOrdinal(atomReferenceName, current.fullName) == 0)
+                        {
+                            // We have to check if it is complied. 
+                            if (!current.isQueuedForCompile)
+                            {
+                                ICompilerService compilerService = new CodeDomCompilerService();
+                                compilerService.CompilePackage(atomPackage, assemblyIndex, m_PackageManager, m_OnComplete);
+                            }
+
+                            while (!current.compilingRoutine.isComplete)
+                            {
+                                yield return RoutineInstructions.ContinueOnThread;
+                            }
+                        }
+                    }
+                }
+            }
+
+
+            // Check if we have to yield on other processes
+            yield return RoutineInstructions.ContinueOnThread;
+            // Add them to our compiler
+            parameters.ReferencedAssemblies.AddRange(resolvedAssemblyPaths);
+            // We want UnityEngine
+            parameters.ReferencedAssemblies.Add(GetAssemblyLocation<MonoBehaviour>());
+            // and System
+            parameters.ReferencedAssemblies.Add(GetAssemblyLocation<Action>());
+            // And the editor
+            parameters.ReferencedAssemblies.Add(GetAssemblyLocation<Editor>());
+            // We don't want to load in memory
+            parameters.GenerateInMemory = false;
+            // Set our warning level
+            parameters.WarningLevel = 3;
+            // And if we should treat warnings as errors
+            parameters.TreatWarningsAsErrors = false;
+            // Create a new results object
+            var results = codeProvider.CompileAssemblyFromFile(parameters, scriptsToCompile);
+            // Add to our global errors.
+            m_CompileResults.AddRange(results.Errors);
         }
 
         protected override void OnOperationComplete()
@@ -142,7 +170,7 @@ namespace AtomPackageManager.Services
             // Fire our callback
             if (m_OnComplete != null)
             {
-                m_OnComplete(this, m_Package);
+                m_OnComplete(this, m_Assembly);
             }
             // Now we can reload
             EditorApplication.UnlockReloadAssemblies();

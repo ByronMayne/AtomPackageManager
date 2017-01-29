@@ -5,7 +5,7 @@ using UnityEngine;
 namespace AtomPackageManager.Packages
 {
     [System.Serializable]
-    public class AtomAssembly 
+    public class AtomAssembly
     {
         [SerializeField]
         private string m_AssemblyName;
@@ -17,7 +17,7 @@ namespace AtomPackageManager.Packages
         private string m_Version = "0.0.0.0";
 
         [SerializeField]
-        private List<string> m_CompiledScripts = new List<string>(); 
+        private List<string> m_CompiledScripts = new List<string>();
 
         [SerializeField]
         [AssemblyNameAttribute]
@@ -25,6 +25,24 @@ namespace AtomPackageManager.Packages
 
         [SerializeField]
         private PluginPlatforms m_SupportPlatforms = new PluginPlatforms();
+
+        [System.NonSerialized]
+        private bool m_IsQueuedForCompile = false;
+        [System.NonSerialized]
+        private ThreadRoutine m_CompilingRoutine;
+
+
+        public bool isQueuedForCompile
+        {
+            get { return m_IsQueuedForCompile; }
+            set { m_IsQueuedForCompile = value; }
+        }
+
+        public ThreadRoutine compilingRoutine
+        {
+            get { return m_CompilingRoutine; }
+            set { m_CompilingRoutine = value; }
+        }
 
         /// <summary>
         /// The name of the assembly that gets created. 
@@ -39,7 +57,7 @@ namespace AtomPackageManager.Packages
 
         public string fullName
         {
-            get { return m_AssemblyName + ", Version=" + m_Version + ", Culture = neutral, PublicKeyToken = null"; }
+            get { return m_AssemblyName + ", Version=" + m_Version + " Culture=neutral, PublicKeyToken=null"; }
         }
 
         /// <summary>
@@ -71,7 +89,7 @@ namespace AtomPackageManager.Packages
                 return Atom.dataPath.Replace("/Assets", '/' + m_UnityAssetPath);
             }
         }
-        
+
         /// <summary>
         /// A list of paths to the scripts that will get put
         /// in this assembly. The Path is relative from the location

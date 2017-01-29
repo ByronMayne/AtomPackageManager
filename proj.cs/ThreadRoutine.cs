@@ -112,9 +112,10 @@ namespace AtomPackageManager
                 {
                     Thread.Sleep(10);
                 }
-                isComplete = true;
+
             }
 
+            isComplete = true;
             // When it's done delay our call onto the main thread.
             EditorApplication.delayCall += () =>
             OnOperationComplete();

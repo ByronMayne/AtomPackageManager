@@ -17,10 +17,10 @@ namespace AtomPackageManager
         private static string m_DataPath;
 
         // Our Default Templates
-        private ICompilerService       m_ICompilerServiceTemplate        = new CodeDomCompilerService();
-        private ISourceControlService  m_ISourceControlServiceTemplate   = new GitSourceControlService();
-        private IPluginImporterService m_IPluginImporterServiceTemplate  = new PluginImporterService();
-        private ISolutionModifier      m_ISolutionModifierTemplate       = new SolutionModifier();
+        private ICompilerService m_ICompilerServiceTemplate = new CodeDomCompilerService();
+        private ISourceControlService m_ISourceControlServiceTemplate = new GitSourceControlService();
+        private IPluginImporterService m_IPluginImporterServiceTemplate = new PluginImporterService();
+        private ISolutionModifier m_ISolutionModifierTemplate = new SolutionModifier();
 
         public PackageManager packageManager
         {
@@ -35,12 +35,12 @@ namespace AtomPackageManager
         [InitializeOnLoadMethod]
         private static void Initialize()
         {
-            
+
             // Save our data path
             //  Try to grab our instance
             Atom instance = FindObjectOfType<Atom>();
             // Check if they are null
-            if(instance == null)
+            if (instance == null)
             {
                 instance = CreateInstance<Atom>();
             }
@@ -54,7 +54,7 @@ namespace AtomPackageManager
 
         private void OnEnable()
         {
-            if(m_PackageManager == null)
+            if (m_PackageManager == null)
             {
                 m_PackageManager = new PackageManager();
                 m_PackageManager.Load();
@@ -63,14 +63,14 @@ namespace AtomPackageManager
             // Find any plugins that have been imported since reload
             ImportPluginRequest[] importRequests = FindObjectsOfType<ImportPluginRequest>();
 
-            for(int i = 0; i < importRequests.Length; i++)
+            for (int i = 0; i < importRequests.Length; i++)
             {
                 // Get the full Asset Path
                 string assetPath = importRequests[i].importer.assetPath;
                 // Try to get our package
                 AtomAssembly assembly = packageManager.GetAssemblyByPath(assetPath);
                 // If it's not null we want to reimport it
-                if(assembly != null)
+                if (assembly != null)
                 {
                     ApplyAtomImporterSettings(assembly);
                 }
@@ -86,30 +86,29 @@ namespace AtomPackageManager
 
         public void CompilePackage(AtomPackage package)
         {
-            ICompilerService compilerService = m_ICompilerServiceTemplate.CreateCopy();
-            compilerService.CompilePackage(package, m_PackageManager, OnCodeCompiled);
+            for (int i = 0; i < package.assemblies.Count; i++)
+            {
+                ICompilerService compilerService = m_ICompilerServiceTemplate.CreateCopy();
+                compilerService.CompilePackage(package, i, m_PackageManager, OnCodeCompiled);
+            }
         }
 
-        private void OnCodeCompiled(ICompilerService compilerService, AtomPackage package)
+        private void OnCodeCompiled(ICompilerService compilerService, AtomAssembly assembly)
         {
-            if(compilerService.wasSuccessful)
+            if (compilerService.wasSuccessful)
             {
-                // Import into Unity by looping over all assemblies
-                foreach (AtomAssembly assembly in package.assemblies)
-                {
-                    // Force import things
-                    AssetDatabase.ImportAsset(assembly.unityAssetPath);
-                }
+                // Force import things
+                AssetDatabase.ImportAsset(assembly.unityAssetPath);
                 // force a refresh
                 AssetDatabase.Refresh();
             }
             else
             {
-                Debug.LogError("Unable to compile assemblies for package " + package.packageName + " read console for errors");
+                Debug.LogError("Unable to compile assemblies for package " + assembly.assemblyName + " read console for errors");
 
                 var errors = compilerService.GetErrors();
 
-                for(int i = 0; i < errors.Count; i++)
+                for (int i = 0; i < errors.Count; i++)
                 {
                     var current = errors[i];
                     string errorMessage = current.ErrorText;
@@ -126,9 +125,9 @@ namespace AtomPackageManager
         {
             ISolutionModifier solutionModifier = m_ISolutionModifierTemplate.CreateCopy();
             solutionModifier.ModifySolution(Constants.SOLUTION_PATH, packageManager);
-            
+
         }
- 
+
         public void ApplyAtomImporterSettings(AtomAssembly assembly)
         {
             IPluginImporterService pluginImportSettings = m_IPluginImporterServiceTemplate.CreateCopy();
@@ -137,9 +136,9 @@ namespace AtomPackageManager
 
         public void Clone(string repositoryURL, string workingDirectory)
         {
-            for(int i = 0; i < m_PackageManager.packages.Count; i++)
+            for (int i = 0; i < m_PackageManager.packages.Count; i++)
             {
-                if(m_PackageManager.packages[i].repositoryURL == repositoryURL)
+                if (m_PackageManager.packages[i].repositoryURL == repositoryURL)
                 {
                     EditorUtility.DisplayDialog("Repository Already Cloned", "The repository '" + repositoryURL + "' is already cloned on disk and in Atom", "Okay");
                     return;

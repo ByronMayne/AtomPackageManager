@@ -9,7 +9,7 @@ namespace AtomPackageManager.Services
     /// </summary>
     /// <param name="ICompilerService">The service that compiled the code.</param>
     /// <param name="package">The package that was requested to be compiled.</param>
-    public delegate void OnCompileCompleteDelegate(ICompilerService compilerService, AtomPackage package);
+    public delegate void OnCompileCompleteDelegate(ICompilerService compilerService, AtomAssembly assembly);
 
     public interface ICompilerService
     {
@@ -17,12 +17,12 @@ namespace AtomPackageManager.Services
         /// Returns true if the compile service was successful and false if it was not.
         /// </summary>
         bool wasSuccessful { get; }
-        
+
         /// <summary>
         /// Used to invoke to start compiling a package. 
         /// </summary>
         /// <param name="package">The package that is being requested to compile</param>
-        void CompilePackage(AtomPackage package, PackageManager packageManager, OnCompileCompleteDelegate onComplete);
+        void CompilePackage(AtomPackage package, int assemblyIndex, PackageManager packageManager, OnCompileCompleteDelegate onComplete);
 
         /// <summary>
         /// Gets the Compiler Errors that were generated if there was any. 

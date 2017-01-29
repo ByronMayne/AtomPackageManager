@@ -56,7 +56,7 @@ namespace AtomPackageManager.Services
                     string rootPath = Constants.SCRIPT_IMPORT_DIRECTORY + package.packageName;
                     //Debug.Log("Root: " + rootPath);
                     // Add the local script path
-                    string scriptPath = rootPath + assembly.compiledScripts[i];
+                    string scriptPath = rootPath + Path.DirectorySeparatorChar + assembly.compiledScripts[i];
                     //Debug.Log("Script Path: " + assembly.compiledScripts[i]);
                     // Set our path.
                     scriptsToCompile[i] = scriptPath;

@@ -48,9 +48,10 @@ namespace AtomPackageManager
         [SerializeField]
         private Atom m_Atom;
 
-        public void LoadSerializedValues()
+        public void RefreshValues()
         {
-
+            m_SerializedAtom.Update();
+            Repaint();
         }
 
         private void SaveSerilaizedValues()
@@ -300,16 +301,6 @@ namespace AtomPackageManager
                 m_PackageListScrollPosition = EditorGUILayout.BeginScrollView(m_PackageListScrollPosition, (GUIStyle)"AnimationCurveEditorBackground");
                 {
 
-
-                    GUIStyle buttonStyle = new GUIStyle(EditorStyles.miniButtonMid);
-
-
-                    buttonStyle.fixedHeight = EditorGUIUtility.singleLineHeight * 2;
-                    buttonStyle.alignment = TextAnchor.MiddleLeft;
-                    buttonStyle.contentOffset = new Vector2(10, 0);
-                    buttonStyle.margin = new RectOffset(0, 0, 2, 0);
-                    buttonStyle.fontStyle = FontStyle.Bold;
-
                     for (int i = 0; i < m_PackagesList.arraySize; i++)
                     {
                         SerializedProperty currentPackage = m_PackagesList.GetArrayElementAtIndex(i);
@@ -319,13 +310,12 @@ namespace AtomPackageManager
                             SerializedProperty name = currentPackage.FindPropertyRelative("m_PackageName");
 
                             GUIContent label = new GUIContent(name.stringValue);
-                            //Rect toggleRect = GUILayoutUtility.GetRect(label, buttonStyle);
 
                             bool startingValue = m_PackageSelectionIndex == i;
-                            //bool isMouseOver = toggleRect.Contains(Event.current.mousePosition);
-                            //int controlID = GUIUtility.GetControlID(FocusType.Passive, toggleRect);
 
+                            GUI.color = m_PackageSelectionIndex == i ? Color.gray : Color.white;
                             GUILayout.BeginVertical(label, GUI.skin.window);
+                            GUI.color = Color.white;
                             {
                                 GUILayout.BeginHorizontal();
                                 {
@@ -341,43 +331,12 @@ namespace AtomPackageManager
                             GUILayout.EndVertical();
 
                             Rect rect = GUILayoutUtility.GetLastRect();
-                            //GUI.Box(rect, GUIContent.none, (GUIStyle)"ControlHighlight");
-                            /*
-                            switch (Event.current.GetTypeForControl(controlID))
+
+                            if(Event.current.type == EventType.MouseDown && rect.Contains(Event.current.mousePosition))
                             {
-                                case EventType.MouseDown:
-                                    if (toggleRect.Contains(Event.current.mousePosition))
-                                    {
-                                        GUIUtility.hotControl = controlID;
-                                        if (m_PackageSelectionIndex != i)
-                                        {
-                                            m_PackageSelectionIndex = i;
-                                            GUIUtility.hotControl = 0;
-                                            GUIUtility.keyboardControl = 0;
-                                        }
-                                        Event.current.Use();
-                                    }
-                                    break;
-                                case EventType.MouseUp:
-                                    if (GUIUtility.hotControl == controlID)
-                                    {
-                                        GUIUtility.hotControl = 0;
-                                        Event.current.Use();
-                                        GUI.changed = true;
-                                    }
-                                    break;
-                                case EventType.MouseDrag:
-                                    if (GUIUtility.hotControl == controlID)
-                                    {
-                                        Event.current.Use();
-                                    }
-                                    break;
-                                case EventType.Repaint:
-                                    {
-                                    }
-                                    break;
+                                m_PackageSelectionIndex = i;
+                                Repaint();
                             }
-                            */
                         }
                         else
                         {

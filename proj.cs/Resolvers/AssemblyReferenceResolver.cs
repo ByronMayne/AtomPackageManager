@@ -126,6 +126,7 @@ namespace AtomPackageManager.Resolvers
                 // Do the names match?
                 if (string.CompareOrdinal(assemblyName, assemblies[x].FullName) == 0)
                 {
+                    foundAssembly = true;
                     return assemblies[x].Location;
                 }
 

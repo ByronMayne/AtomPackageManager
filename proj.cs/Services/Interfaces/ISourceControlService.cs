@@ -44,6 +44,11 @@ namespace AtomPackageManager.Services
         bool wasSuccessful { get; }
 
         /// <summary>
+        /// The name of the package we are cloning.
+        /// </summary>
+        string repositoryName { get; }
+
+        /// <summary>
         /// Request to clone a repository on to disk.
         /// </summary>
         /// <param name="repositoryURL">The url of the repository.</param>

@@ -84,6 +84,11 @@
       <DesignTime>True</DesignTime>
       <DependentUpon>AtomSettings.tt</DependentUpon>
     </Compile>
+    <Compile Include="Strings\CreateNewAtomFileDialog.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>CreateNewAtomFileDialog.resx</DependentUpon>
+    </Compile>
   </ItemGroup>
   <ItemGroup>
     <Service Include="{508349B6-6B84-4DF5-91F0-309BEEBAD82D}" />
@@ -98,6 +103,12 @@
       <LastGenOutput>AtomSettings.cs</LastGenOutput>
     </Content>
     <None Include="Settings\AtomSettings.xml" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Strings\CreateNewAtomFileDialog.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>CreateNewAtomFileDialog.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Target Name="AfterBuild">

@@ -1,5 +1,6 @@
 ﻿using AtomPackageManager.Packages;
 using AtomPackageManager.Services;
+using AtomPackageManager.Strings;
 using System.Collections.Generic;
 using System.IO;
 using UnityEditor;
@@ -67,23 +68,39 @@ namespace AtomPackageManager
         /// <param name="directory"></param>
         public void CloneComplete(ISourceControlService service)
         {
-            Debug.Log("Succ: " + service.wasSuccessful);
+            Debug.Log("Was Succsful: " + service.wasSuccessful);
             if (service.wasSuccessful)
             {
-                Debug.Log("Clone Complete: " + service.directory);
                 // Try to find the atom.yaml in the root
                 string[] files = Directory.GetFiles(service.directory, "*.atom");
 
                 // Do we have any results?
-                for (int i = 0; i < files.Length; i++)
+                if(files.Length > 0)
                 {
-                    LoadAtomFileAtPath(files[i]);
+                    Debug.Log("found");
+                    for (int i = 0; i < files.Length; i++)
+                    {
+                        LoadAtomFileAtPath(files[i]);
+                    }
+                }
+                else
+                {
+                    if( EditorUtility.DisplayDialog(CreateNewAtomFileDialog.Title,
+                                                    string.Format(CreateNewAtomFileDialog.Message, service.repositoryURL),
+                                                    CreateNewAtomFileDialog.OkayButton,
+                                                    CreateNewAtomFileDialog.CancelButton))
+                    {
+                        AtomPackage newPackage = AtomPackage.CreatePackage(service.repositoryURL, service.directory);
+                        m_Packages.Add(newPackage);
+                        Save();
+                    }
                 }
 
                 PackageEditor editor = Object.FindObjectOfType<PackageEditor>();
+
                 if (editor != null)
                 {
-                    editor.LoadSerializedValues();
+                    editor.RefreshValues();
                 }
             }
         }

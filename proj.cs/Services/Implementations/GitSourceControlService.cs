@@ -84,8 +84,8 @@ namespace AtomPackageManager.Services
             }
 
             m_RepositoryURL = repositoryURL;
-            m_Directory = workingDirectory;
             m_RepositoryName = Path.GetFileNameWithoutExtension(m_RepositoryURL);
+            m_Directory = workingDirectory + "/" + repositoryName + "/";
             m_WorkingDirectory = FileUtil.GetUniqueTempPathInProject() + "/";
 
             m_WasSuccessful = true;
@@ -139,7 +139,7 @@ namespace AtomPackageManager.Services
                 processInfo.UseShellExecute = true;
             }
             // Set our arguments
-            processInfo.Arguments += " git clone -o master " + repositoryURL + " " + directory + repositoryName + "/";
+            processInfo.Arguments += " git clone -o master " + repositoryURL + " " + directory;
             // We don't want to show a window.
             processInfo.CreateNoWindow = false;
             // We work inside our new directory
@@ -152,12 +152,9 @@ namespace AtomPackageManager.Services
             gitCloneProcess.OutputDataReceived += OutputHandler;
             gitCloneProcess.ErrorDataReceived += ErrorHandler;
             //* Start process and handlers
-            gitCloneProcess.Start();
-            gitCloneProcess.BeginOutputReadLine();
-            gitCloneProcess.BeginErrorReadLine();
             gitCloneProcess.WaitForExit();
             m_WasSuccessful = gitCloneProcess.ExitCode == 0;
-            UnityEngine.Debug.Log(m_WasSuccessful + " | " + gitCloneProcess.ExitCode);
+            // Copy it to our new location
             // Fire our event but we have to delay it as we are currently
             // executing on a custom thread. delayCall is always called in the main thread.
             EditorApplication.delayCall += () =>

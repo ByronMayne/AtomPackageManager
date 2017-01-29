@@ -95,7 +95,20 @@ namespace AtomPackageManager
             }
             else
             {
-                Debug.LogError("Unable to compile assemblies for package " + package.packageName);
+                Debug.LogError("Unable to compile assemblies for package " + package.packageName + " read console for errors");
+
+                var errors = compilerService.GetErrors();
+
+                for(int i = 0; i < errors.Count; i++)
+                {
+                    var current = errors[i];
+                    string errorMessage = current.ErrorText;
+                    errorMessage += Environment.NewLine;
+                    errorMessage += "Line: " + current.Line + " Column: " + current.Column;
+                    errorMessage += Environment.NewLine;
+                    errorMessage += "File: " + current.FileName;
+                    Debug.LogError(errorMessage);
+                }
             }
         }
 
@@ -116,7 +129,7 @@ namespace AtomPackageManager
         {
             for(int i = 0; i < m_PackageManager.packages.Count; i++)
             {
-                if(m_PackageManager.packages[i].contentURL == repositoryURL)
+                if(m_PackageManager.packages[i].repositoryURL == repositoryURL)
                 {
                     EditorUtility.DisplayDialog("Repository Already Cloned", "The repository '" + repositoryURL + "' is already cloned on disk and in Atom", "Okay");
                     return;

@@ -68,7 +68,6 @@ namespace AtomPackageManager.Services
                                     builder.AppendLine(reference.ToString());
                                     builder.AppendLine("EndProject");
                                     projectsInSolution.Add(current.packageName);
-                                    Debug.Log("Writing:" + current.solutionPath);
                                 }
                             }
 

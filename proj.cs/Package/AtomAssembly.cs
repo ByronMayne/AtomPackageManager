@@ -14,6 +14,9 @@ namespace AtomPackageManager.Packages
         private string m_UnityAssetPath;
 
         [SerializeField]
+        private string m_Version = "0.0.0.0";
+
+        [SerializeField]
         private List<string> m_CompiledScripts = new List<string>(); 
 
         [SerializeField]
@@ -32,6 +35,11 @@ namespace AtomPackageManager.Packages
 #if DEVELOPMENT
             set { m_AssemblyName = value; }
 #endif 
+        }
+
+        public string fullName
+        {
+            get { return m_AssemblyName + ", Version=" + m_Version + ", Culture = neutral, PublicKeyToken = null"; }
         }
 
         /// <summary>
@@ -60,7 +68,7 @@ namespace AtomPackageManager.Packages
         {
             get
             {
-                return Application.dataPath.Replace("/Assets", '/' + m_UnityAssetPath);
+                return Atom.dataPath.Replace("/Assets", '/' + m_UnityAssetPath);
             }
         }
         

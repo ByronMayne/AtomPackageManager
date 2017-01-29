@@ -7,11 +7,12 @@ using System.Reflection;
 using System.Text;
 using UnityEditor;
 
+
 namespace AtomPackageManager.Resolvers
 {
     public class AssemblyReferenceResolver
     {
-        public static string[] ResolveAssemblyPaths(AtomAssembly assembly)
+        public static string[] ResolveAssemblyPaths(AtomAssembly assembly, PackageManager packageManger)
         {
             // Create a new array with the same number of elements
             string[] resolvedAssemblyPaths = new string[assembly.references.Count];
@@ -55,28 +56,39 @@ namespace AtomPackageManager.Resolvers
                 bool foundAssembly = false;
 
                 // Now search our App Domain (which is slower)
-                resolvedAssemblyPaths[i] = FindAssemblyInAppDomain(assemblyName, ref foundAssembly);
-
+                resolvedAssemblyPaths[i] = FindAssemblyInAppDomain(assemblyName, assembly.assemblyName, ref foundAssembly);
 
                 if (!foundAssembly)
                 {
+                    // Check if Atom has that assembly listed
+                    resolvedAssemblyPaths[i] = FindAssemblyInAtom(packageManger, assembly.assemblyName, assemblyName, ref foundAssembly);
+                    if(foundAssembly)
+                    {
+
+                    }
+                    else if( string.IsNullOrEmpty(resolvedAssemblyPaths[i]))
+                    {
+                        if (ShowSuggestDialog(assemblyName, resolvedAssemblyPaths[i]))
+                        {
+                            // They want us to fix it. 
+                            assembly.references[i] = resolvedAssemblyPaths[i];
+                        }
+                        else
+                        {
+                            ShowUnableToResolveAssembliy(assemblyName);
+                            // They don't want to fix it. 
+                            return null;
+                        }
+                    }
                     // Did we even have a guess?
-                    if (string.IsNullOrEmpty(resolvedAssemblyPaths[i]))
+                    else if (string.IsNullOrEmpty(resolvedAssemblyPaths[i]))
                     {
                         ShowUnableToResolveAssembliy(assemblyName);
                         return null;
                     }
                     else
                     {
-                        // This will always be on the same thread. 
-                        // Ask the user if our guess is correct.
-                        string message = "We were unable to resolve the assembly '" + assemblyName + 
-                                         "'. However we found a similar named assembly '" + resolvedAssemblyPaths[i] +
-                                         "'. Was this the assembly you were trying to reference?";
-
-                        bool choice = EditorUtility.DisplayDialog("Assembly Resolver Error", message, "Yes", "No");
-
-                        if(choice)
+                        if (ShowSuggestDialog(assemblyName, resolvedAssemblyPaths[i]))
                         {
                             // They want us to fix it. 
                             assembly.references[i] = resolvedAssemblyPaths[i];
@@ -95,6 +107,55 @@ namespace AtomPackageManager.Resolvers
             return resolvedAssemblyPaths;
         }
 
+        /// <summary>
+        /// Show the user a window asking if they want to substitute. 
+        /// </summary>
+        /// <returns></returns>
+        private static bool ShowSuggestDialog(string userAssembly, string suggestionAssembly)
+        {
+            // This will always be on the same thread. 
+            // Ask the user if our guess is correct.
+            string message = "We were unable to resolve the assembly '" + userAssembly +
+                             "'. However we found a similar named assembly '" + suggestionAssembly +
+                             "'. Was this the assembly you were trying to reference?";
+
+            return EditorUtility.DisplayDialog("Assembly Resolver Error", message, "Yes", "No");
+        }
+
+        /// <summary>
+        /// Loops over Atom to try to find a package that matches our assembly name. 
+        /// </summary>
+        private static string FindAssemblyInAtom(PackageManager packageManger, string buildingAssembly, string assemblyName, ref bool foundAssembly)
+        {
+            string bestGuess = null;
+            foreach (AtomPackage package in packageManger.packages)
+            {
+                foreach (AtomAssembly assembly in package.assemblies)
+                {
+                    string fullName = assembly.assemblyName + ", Version=" + package.version + " Culture=neutral, PublicKeyToken=null";
+
+                    UnityEngine.Debug.Log("Found: " + fullName);
+
+                    if (string.CompareOrdinal(assemblyName, fullName) == 0)
+                    {
+                        foundAssembly = true;
+                        return assembly.systemAssetPath + assembly.assemblyName + ".dll";
+                    }
+
+                    string lowercase = assembly.assemblyName.ToLower();
+
+                    UnityEngine.Debug.Log("assemblyName: " + assemblyName + " Build: " + buildingAssembly);
+                    if (lowercase.Contains(assemblyName.ToLower()) && !assemblyName.StartsWith(buildingAssembly + ","))
+                    {
+                        bestGuess = fullName;
+                    }
+
+                }
+            }
+            foundAssembly = false;
+            return bestGuess;
+        }
+
         private static void ShowUnableToResolveAssembliy(string assemblyName)
         {
             // Try to guess which one they were referencing (just incase they only had the temp path).
@@ -110,7 +171,7 @@ namespace AtomPackageManager.Resolvers
         /// </summary>
         /// <param name="assemblyName"></param>
         /// <returns></returns>
-        private static string FindAssemblyInAppDomain(string assemblyName, ref bool foundAssembly)
+        private static string FindAssemblyInAppDomain(string assemblyName, string buildingAssembly, ref bool foundAssembly)
         {
             // Get our current
             AppDomain currentDomain = AppDomain.CurrentDomain;
@@ -133,7 +194,7 @@ namespace AtomPackageManager.Resolvers
                 string lowercase = assemblies[x].FullName.ToLower();
 
                 // We want to try to help the user. 
-                if(lowercase.Contains(lowercaseAssemblyName))
+                if (lowercase.Contains(lowercaseAssemblyName) && !assemblyName.StartsWith(buildingAssembly + ","))
                 {
                     bestGuess = assemblies[x].FullName;
                 }

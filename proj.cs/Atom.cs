@@ -14,6 +14,8 @@ namespace AtomPackageManager
         [SerializeField]
         private PackageManager m_PackageManager;
 
+        private static string m_DataPath;
+
         // Our Default Templates
         private ICompilerService       m_ICompilerServiceTemplate        = new CodeDomCompilerService();
         private ISourceControlService  m_ISourceControlServiceTemplate   = new GitSourceControlService();
@@ -25,9 +27,16 @@ namespace AtomPackageManager
             get { return m_PackageManager; }
         }
 
+        public static string dataPath
+        {
+            get { return m_DataPath; }
+        }
+
         [InitializeOnLoadMethod]
         private static void Initialize()
         {
+            
+            // Save our data path
             //  Try to grab our instance
             Atom instance = FindObjectOfType<Atom>();
             // Check if they are null
@@ -35,6 +44,7 @@ namespace AtomPackageManager
             {
                 instance = CreateInstance<Atom>();
             }
+            m_DataPath = Application.dataPath;
         }
 
         public void Save()
@@ -77,7 +87,7 @@ namespace AtomPackageManager
         public void CompilePackage(AtomPackage package)
         {
             ICompilerService compilerService = m_ICompilerServiceTemplate.CreateCopy();
-            compilerService.CompilePackage(package, OnCodeCompiled);
+            compilerService.CompilePackage(package, m_PackageManager, OnCodeCompiled);
         }
 
         private void OnCodeCompiled(ICompilerService compilerService, AtomPackage package)

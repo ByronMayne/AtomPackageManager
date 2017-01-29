@@ -8,11 +8,12 @@ using ProcessStartInfo = System.Diagnostics.ProcessStartInfo;
 using Object = UnityEngine.Object;
 using System.Diagnostics;
 using AtomPackageManager.Popups;
+using System.Collections.Generic;
 
 namespace AtomPackageManager.Services
 {
     [System.Serializable]
-    public class GitSourceControlService : ISourceControlService
+    public class GitSourceControlService : ThreadRoutine, ISourceControlService
     {
         private string m_RepositoryURL;
         private string m_Directory;
@@ -87,35 +88,20 @@ namespace AtomPackageManager.Services
             m_RepositoryName = Path.GetFileNameWithoutExtension(m_RepositoryURL);
             m_Directory = workingDirectory + "/" + repositoryName + "/";
             m_WorkingDirectory = FileUtil.GetUniqueTempPathInProject() + "/";
-
+            m_OnCompleteCallback = onComplete;
             m_WasSuccessful = true;
-            // Start a new thread process.
-            ThreadStart threadStart = delegate
-            {
-                CloneThreadProcess(onComplete);
-            };
-
-            // Create the thread
-            Thread cloneThread = new Thread(threadStart);
-            // The start it.
-            cloneThread.Start();
+            StartThread();
         }
 
-        /// <summary>
-        /// Clones a git repository to disk.
-        /// </summary>
-        /// <param name="gitURL">The URL of the git repository</param>
-        /// <param name="repositoryLocation">The location on disk you want to clone it too</param>
-        private void CloneThreadProcess(OnCloneCompletedDelegate onComplete)
+        protected override IEnumerator<RoutineInstructions> ProcessOperation()
         {
+            yield return RoutineInstructions.ContinueOnThread;
+
             // Create a folder if it does not exist. 
             if (!Directory.Exists(m_WorkingDirectory))
             {
                 Directory.CreateDirectory(m_WorkingDirectory);
             }
-
-            // Save our callback.
-            m_OnCompleteCallback = onComplete;
 
             // Create a new process for the git request. 
             var processInfo = new ProcessStartInfo();
@@ -146,25 +132,17 @@ namespace AtomPackageManager.Services
             processInfo.WorkingDirectory = m_WorkingDirectory;
             // Start the process
             Process gitCloneProcess = Process.Start(processInfo);
-            gitCloneProcess.StartInfo.RedirectStandardOutput = true;
-            gitCloneProcess.StartInfo.RedirectStandardError = true;
             //* Set your output and error (asynchronous) handlers
-            gitCloneProcess.OutputDataReceived += OutputHandler;
-            gitCloneProcess.ErrorDataReceived += ErrorHandler;
-            //* Start process and handlers
-            gitCloneProcess.WaitForExit();
+            gitCloneProcess.WaitForExit(10000);
             m_WasSuccessful = gitCloneProcess.ExitCode == 0;
-            // Copy it to our new location
-            // Fire our event but we have to delay it as we are currently
-            // executing on a custom thread. delayCall is always called in the main thread.
-            EditorApplication.delayCall += () =>
+        }
+
+        protected override void OnOperationComplete()
+        {
+            if(m_OnCompleteCallback != null)
             {
-                // Invoke our callback. 
-                if (m_OnCompleteCallback != null)
-                {
-                    m_OnCompleteCallback(this);
-                }
-            };
+                m_OnCompleteCallback(this);
+            }
         }
 
         /// <summary>

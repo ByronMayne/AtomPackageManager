@@ -22,7 +22,7 @@ namespace AtomPackageManager.Services
         /// Used to invoke to start compiling a package. 
         /// </summary>
         /// <param name="package">The package that is being requested to compile</param>
-        void CompilePackage(AtomPackage package, OnCompileCompleteDelegate onComplete);
+        void CompilePackage(AtomPackage package, PackageManager packageManager, OnCompileCompleteDelegate onComplete);
 
         /// <summary>
         /// Gets the Compiler Errors that were generated if there was any. 

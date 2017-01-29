@@ -32,7 +32,7 @@ namespace AtomPackageManager
         {
             get
             {
-                return Application.dataPath.Replace("/Assets", "/Library/Atom/");
+                return Atom.dataPath.Replace("/Assets", "/Library/Atom/");
             }
         }
 
@@ -43,7 +43,7 @@ namespace AtomPackageManager
         {
             get
             {
-                return Application.dataPath.Replace("/Assets", "/" + "proj.unity" + SOLUTION_EXTENSION);
+                return Atom.dataPath.Replace("/Assets", "/" + "proj.unity" + SOLUTION_EXTENSION);
             }
         }
     }

@@ -8,16 +8,23 @@ using UnityEditor;
 using UnityEngine;
 using System;
 using AtomPackageManager.Resolvers;
+using System.Threading;
+using System.Collections;
 
 namespace AtomPackageManager.Services
 {
     [System.Serializable]
-    public class CodeDomCompilerService : ICompilerService
+    public class CodeDomCompilerService : ThreadRoutine, ICompilerService
     {
         /// <summary>
         /// The result of our compiling.
         /// </summary>
         private CompilerErrorCollection m_CompileResults;
+
+        private AtomPackage m_Package;
+        private PackageManager m_PackageManager;
+        private OnCompileCompleteDelegate m_OnComplete;
+        private bool m_IsComplete;
 
         /// <summary>
         /// Returns if the compile was successful or not. 
@@ -30,20 +37,27 @@ namespace AtomPackageManager.Services
             }
         }
 
-        /// <summary>
-        /// Takes an atom package and then compiles it to disk.
-        /// </summary>
-        /// <param name="package"></param>
-        public void CompilePackage(AtomPackage package, OnCompileCompleteDelegate onComplete)
+        public void CompilePackage(AtomPackage package, PackageManager packageManager, OnCompileCompleteDelegate onComplete)
         {
-            // Stop us from compiling. 
-            EditorApplication.LockReloadAssemblies();
+            // Assign our locals
+            m_Package = package;
+            m_PackageManager = packageManager;
+            m_OnComplete = onComplete;
+            StartThread();
+        }
 
+        protected override void OnOperationStarted()
+        {
+            EditorApplication.LockReloadAssemblies(); 
+        }
+
+        protected override IEnumerator<RoutineInstructions> ProcessOperation()
+        {
             // Create new error collection
             m_CompileResults = new CompilerErrorCollection();
 
             // Loop over all assemblies
-            foreach (AtomAssembly assembly in package.assemblies)
+            foreach (AtomAssembly assembly in m_Package.assemblies)
             {
                 string directory = Path.GetDirectoryName(assembly.systemAssetPath);
 
@@ -59,7 +73,7 @@ namespace AtomPackageManager.Services
                 for (int i = 0; i < scriptsToCompile.Length; i++)
                 {
                     // Build our path
-                    string rootPath = Constants.SCRIPT_IMPORT_DIRECTORY + package.packageName;
+                    string rootPath = Constants.SCRIPT_IMPORT_DIRECTORY + m_Package.packageName;
                     //Debug.Log("Root: " + rootPath);
                     // Add the local script path
                     string scriptPath = rootPath + Path.DirectorySeparatorChar + assembly.compiledScripts[i];
@@ -86,10 +100,18 @@ namespace AtomPackageManager.Services
                 IList<string> referencedAssemblies = assembly.references;
                 // Create our return 
                 string[] resolvedAssemblyPaths = null;
+
+                // Check if we have to yield on other processes
+                yield return RoutineInstructions.ContinueOnMainThread;
+
                 // Use the assembly resolver
-                resolvedAssemblyPaths = AssemblyReferenceResolver.ResolveAssemblyPaths(assembly);
+                resolvedAssemblyPaths = AssemblyReferenceResolver.ResolveAssemblyPaths(assembly, m_PackageManager);
+
+                // Check if we have to yield on other processes
+                yield return RoutineInstructions.ContinueOnThread;
+
                 // Make sure there was no error
-                if(resolvedAssemblyPaths == null || resolvedAssemblyPaths.Length == 0)
+                if (resolvedAssemblyPaths == null || resolvedAssemblyPaths.Length == 0)
                 {
                     continue;
                 }
@@ -112,11 +134,15 @@ namespace AtomPackageManager.Services
                 // Add to our global errors.
                 m_CompileResults.AddRange(results.Errors);
             }
+            m_IsComplete = true;
+        }
 
+        protected override void OnOperationComplete()
+        {
             // Fire our callback
-            if (onComplete != null)
+            if (m_OnComplete != null)
             {
-                onComplete(this, package);
+                m_OnComplete(this, m_Package);
             }
             // Now we can reload
             EditorApplication.UnlockReloadAssemblies();

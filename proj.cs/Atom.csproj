@@ -89,6 +89,7 @@
       <DesignTime>True</DesignTime>
       <DependentUpon>CreateNewAtomFileDialog.resx</DependentUpon>
     </Compile>
+    <Compile Include="ThreadRoutine.cs" />
   </ItemGroup>
   <ItemGroup>
     <Service Include="{508349B6-6B84-4DF5-91F0-309BEEBAD82D}" />

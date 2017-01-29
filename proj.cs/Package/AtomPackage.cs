@@ -29,8 +29,23 @@ namespace AtomPackageManager.Packages
         [SerializeField]
         private int m_LocalNewFiles = 2;
 
+        [System.NonSerialized]
+        private ThreadRoutine m_CompilingRoutine; 
+
         [SerializeField]
         private List<AtomAssembly> m_Assemblies = new List<AtomAssembly>();
+
+        public ThreadRoutine compilingRoutine
+        {
+            get
+            {
+                return m_CompilingRoutine;
+            }
+            set
+            {
+                m_CompilingRoutine = value;
+            }
+        }
 
         public static AtomPackage CreatePackage(string repositoryURL, string sourceDirectory)
         {

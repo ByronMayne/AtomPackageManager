@@ -1,5 +1,4 @@
-﻿
-using UnityEngine;
+﻿using UnityEngine;
 
 namespace AtomPackageManager
 {
@@ -37,6 +36,7 @@ namespace AtomPackageManager
 
         // Settings Menu
         public static readonly GUIContent settingsLocalCatagory;
+
         public static readonly GUIContent settingsProjectCatagory;
     }
 }

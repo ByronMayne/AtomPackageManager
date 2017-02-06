@@ -47,6 +47,14 @@ namespace AtomPackageManager.Packages
             }
         }
 
+        public string SourceDirectory
+        {
+            get
+            {
+                return FilePaths.atomWorkingDirectory + m_PackageName + "/";
+            }
+        }
+
         public static AtomPackage CreatePackage(string repositoryURL, string sourceDirectory)
         {
             // Create a new one

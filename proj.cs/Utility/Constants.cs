@@ -25,26 +25,6 @@ namespace AtomPackageManager
         /// </summary>
         public const string SOLUTION_EXTENSION = ".sln";
 
-        /// <summary>
-        /// The location on disk where we store the repositories for our Atom packages.
-        /// </summary>
-        public static string SCRIPT_IMPORT_DIRECTORY
-        {
-            get
-            {
-                return Atom.dataPath.Replace("/Assets", "/Library/Atom/");
-            }
-        }
-
-        /// <summary>
-        /// Returns the full path to this projects solution.
-        /// </summary>
-        public static string SOLUTION_PATH
-        {
-            get
-            {
-                return Atom.dataPath.Replace("/Assets", "/" + "proj.unity" + SOLUTION_EXTENSION);
-            }
-        }
+        public const string GENERATED_SOLUTIONS_DIRECTORY_NAME = "Generated Solutions";
     }
 }

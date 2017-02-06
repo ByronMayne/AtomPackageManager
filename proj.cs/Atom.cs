@@ -14,8 +14,6 @@ namespace AtomPackageManager
         [SerializeField]
         private PackageManager m_PackageManager;
 
-        private static string m_DataPath;
-
         // Our Default Templates
         private ICompilerService m_ICompilerServiceTemplate = new CodeDomCompilerService();
         private ISourceControlService m_ISourceControlServiceTemplate = new GitSourceControlService();
@@ -25,11 +23,6 @@ namespace AtomPackageManager
         public PackageManager packageManager
         {
             get { return m_PackageManager; }
-        }
-
-        public static string dataPath
-        {
-            get { return m_DataPath; }
         }
 
         [InitializeOnLoadMethod]
@@ -44,7 +37,6 @@ namespace AtomPackageManager
             {
                 instance = CreateInstance<Atom>();
             }
-            m_DataPath = Application.dataPath;
         }
 
         public void Save()
@@ -124,7 +116,7 @@ namespace AtomPackageManager
         public void BuildAtomSolution()
         {
             ISolutionModifier solutionModifier = m_ISolutionModifierTemplate.CreateCopy();
-            solutionModifier.ModifySolution(Constants.SOLUTION_PATH, packageManager);
+            solutionModifier.ModifySolution(FilePaths.unitySolutionPath, packageManager);
 
         }
 

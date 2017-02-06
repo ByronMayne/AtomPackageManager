@@ -57,28 +57,28 @@ namespace AtomPackageManager.Services
                                 // Get our current
                                 AtomPackage current = packageManager.packages[i];
                                 // Check if it's include
-                                if(!projectsInSolution.Contains(current.packageName))
+                                foreach(AtomAssembly assembly in packageManager.packages[i].assemblies)
                                 {
-                                    // It's not there so we make a new one
-                                    PersistenceBlock reference = new PersistenceBlock();
-                                    reference.name = current.packageName;
-                                    reference.path = Constants.SCRIPT_IMPORT_DIRECTORY + current.packageName + "/" + current.solutionPath;
-                                    reference.projectGUID = System.Guid.NewGuid().ToString();
-                                    writeComplete = true;
-                                    builder.AppendLine(reference.ToString());
-                                    builder.AppendLine("EndProject");
-                                    projectsInSolution.Add(current.packageName);
+                                    if (!projectsInSolution.Contains(assembly.assemblyName))
+                                    {
+                                        // It's not there so we make a new one
+                                        PersistenceBlock reference = new PersistenceBlock();
+                                        reference.name = current.packageName;
+                                        reference.path = FilePaths.generatedProjectsDirectory + assembly.assemblyName + ".csproj";
+                                        reference.projectGUID = System.Guid.NewGuid().ToString();
+                                        writeComplete = true;
+                                        builder.AppendLine(reference.ToString());
+                                        builder.AppendLine("EndProject");
+                                        projectsInSolution.Add(current.packageName);
+                                    }
                                 }
                             }
-
-                    
                         }
                     }
 
                     // Push the contents to our builder. 
                     builder.AppendLine(line);
                 }
-
             }
 
             // Now write it

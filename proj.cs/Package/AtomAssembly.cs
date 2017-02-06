@@ -86,7 +86,7 @@ namespace AtomPackageManager.Packages
         {
             get
             {
-                return Atom.dataPath.Replace("/Assets", '/' + m_UnityAssetPath);
+                return FilePaths.projectRoot + m_UnityAssetPath;
             }
         }
 

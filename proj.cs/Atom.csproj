@@ -32,6 +32,7 @@
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="System" />
+    <Reference Include="System.Xml.Linq" />
     <Reference Include="UnityEditor">
       <HintPath>lib\UnityEditor.dll</HintPath>
     </Reference>
@@ -43,7 +44,7 @@
   <ItemGroup>
     <Compile Include="Atom.cs" />
     <Compile Include="BuiltInResourcesWindow.cs" />
-    <Compile Include="Constants.cs" />
+    <Compile Include="Utility\Constants.cs" />
     <Compile Include="Attributes\AssemblyNameAttribute.cs" />
     <Compile Include="Editors\AssemblyNamePropertyDrawer.cs" />
     <Compile Include="Events\AtomAssetImporter.cs" />
@@ -72,6 +73,7 @@
     <Compile Include="Services\Implementations\GitSourceControlService.cs" />
     <Compile Include="Services\Implementations\PersistenceBlock.cs" />
     <Compile Include="Services\Implementations\PluginImporterService.cs" />
+    <Compile Include="Services\Implementations\ProjectCreator.cs" />
     <Compile Include="Services\Implementations\SolutionModifier.cs" />
     <Compile Include="Services\Interfaces\ICompilerService.cs" />
     <Compile Include="Services\Interfaces\IPluginImporterService.cs" />

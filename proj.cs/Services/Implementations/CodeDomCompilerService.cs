@@ -10,6 +10,7 @@ using System;
 using AtomPackageManager.Resolvers;
 using System.Threading;
 using System.Collections;
+using AtomPackageManager.Services.Implementations;
 
 namespace AtomPackageManager.Services
 {
@@ -23,6 +24,7 @@ namespace AtomPackageManager.Services
 
         private AtomAssembly m_Assembly;
         private AtomPackage m_Package;
+        private int m_AssemblyIndex;
         private PackageManager m_PackageManager;
         private OnCompileCompleteDelegate m_OnComplete;
 
@@ -43,6 +45,7 @@ namespace AtomPackageManager.Services
             m_Package = package;
             m_Assembly = package.assemblies[assemblyIndex];
             m_PackageManager = packageManager;
+            m_AssemblyIndex = assemblyIndex;
             m_OnComplete = onComplete;
             // Create new error collection
             m_CompileResults = new CompilerErrorCollection();
@@ -67,8 +70,6 @@ namespace AtomPackageManager.Services
 
         protected override IEnumerator<RoutineInstructions> ProcessOperation()
         {
-  
-
             string directory = Path.GetDirectoryName(m_Assembly.systemAssetPath);
 
             // Validate our output detestation exists. 
@@ -83,7 +84,7 @@ namespace AtomPackageManager.Services
             for (int i = 0; i < scriptsToCompile.Length; i++)
             {
                 // Build our path
-                string rootPath = Constants.SCRIPT_IMPORT_DIRECTORY + m_Package.packageName;
+                string rootPath = FilePaths.atomWorkingDirectory + m_Package.packageName;
                 //Debug.Log("Root: " + rootPath);
                 // Add the local script path
                 string scriptPath = rootPath + Path.DirectorySeparatorChar + m_Assembly.compiledScripts[i];
@@ -142,9 +143,14 @@ namespace AtomPackageManager.Services
                 }
             }
 
+            yield return RoutineInstructions.ContinueOnMainThread;
+
+            ProjectCreator.CreateCSProject(m_Package, m_AssemblyIndex, resolvedAssemblyPaths);
 
             // Check if we have to yield on other processes
             yield return RoutineInstructions.ContinueOnThread;
+
+
             // Add them to our compiler
             parameters.ReferencedAssemblies.AddRange(resolvedAssemblyPaths);
             // We want UnityEngine

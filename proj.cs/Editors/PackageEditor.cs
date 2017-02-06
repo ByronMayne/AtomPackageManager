@@ -7,6 +7,7 @@ using System;
 using System.IO;
 using UnityEditor.AnimatedValues;
 using AtomPackageManager.Popups;
+using AtomPackageManager.Services.Implementations;
 
 namespace AtomPackageManager
 {
@@ -281,7 +282,7 @@ namespace AtomPackageManager
                     {
                         if (GUILayout.Button("Add", EditorStyles.miniButtonLeft))
                         {
-                            m_Atom.Clone(m_NewPackageURL, Constants.SCRIPT_IMPORT_DIRECTORY);
+                            m_Atom.Clone(m_NewPackageURL, FilePaths.atomWorkingDirectory);
                             m_AddRepositoryPackageEditorOpen.target = false;
                         }
 

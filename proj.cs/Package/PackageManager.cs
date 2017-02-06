@@ -68,7 +68,6 @@ namespace AtomPackageManager
         /// <param name="directory"></param>
         public void CloneComplete(ISourceControlService service)
         {
-            Debug.Log("Was Succsful: " + service.wasSuccessful);
             if (service.wasSuccessful)
             {
                 // Try to find the atom.yaml in the root
@@ -77,7 +76,6 @@ namespace AtomPackageManager
                 // Do we have any results?
                 if(files.Length > 0)
                 {
-                    Debug.Log("found");
                     for (int i = 0; i < files.Length; i++)
                     {
                         LoadAtomFileAtPath(files[i]);

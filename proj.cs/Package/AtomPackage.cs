@@ -70,10 +70,8 @@ namespace AtomPackageManager.Packages
             // Set it's version
             newPackage.m_Version = "1.0.0.0";
             // Find the 'Assets' folder
-            Debug.Log("Dir:" + sourceDirectory);
             string[] assetsDirectory = Directory.GetDirectories(sourceDirectory, "Assets", SearchOption.AllDirectories);
             // If we have just one we are going to assume that is a Unity project
-            Debug.Log("Asset File Count" + ": " + assetsDirectory.Length);
             if(assetsDirectory.Length == 1)
             {
                 // Find all the scripts in the editor folders

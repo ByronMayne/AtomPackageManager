@@ -52,24 +52,28 @@ namespace AtomPackageManager.Services
                         }
                         else if (foundProjectHeader && !line.StartsWith("EndProject"))
                         {
-                            for(int i = 0; i < packageManager.packages.Count; i++)
+                            for (int i = 0; i < packageManager.packages.Count; i++)
                             {
                                 // Get our current
                                 AtomPackage current = packageManager.packages[i];
                                 // Check if it's include
-                                foreach(AtomAssembly assembly in packageManager.packages[i].assemblies)
+                                foreach (AtomAssembly assembly in packageManager.packages[i].assemblies)
                                 {
-                                    if (!projectsInSolution.Contains(assembly.assemblyName))
+                                    // Only add assemblies that want to be added.
+                                    if (assembly.addToProjectSolution)
                                     {
-                                        // It's not there so we make a new one
-                                        PersistenceBlock reference = new PersistenceBlock();
-                                        reference.name = current.packageName;
-                                        reference.path = FilePaths.generatedProjectsDirectory + assembly.assemblyName + ".csproj";
-                                        reference.projectGUID = System.Guid.NewGuid().ToString();
-                                        writeComplete = true;
-                                        builder.AppendLine(reference.ToString());
-                                        builder.AppendLine("EndProject");
-                                        projectsInSolution.Add(current.packageName);
+                                        if (!projectsInSolution.Contains(assembly.assemblyName))
+                                        {
+                                            // It's not there so we make a new one
+                                            PersistenceBlock reference = new PersistenceBlock();
+                                            reference.name = current.packageName;
+                                            reference.path = FilePaths.generatedProjectsDirectory + assembly.assemblyName + ".csproj";
+                                            reference.projectGUID = System.Guid.NewGuid().ToString();
+                                            writeComplete = true;
+                                            builder.AppendLine(reference.ToString());
+                                            builder.AppendLine("EndProject");
+                                            projectsInSolution.Add(current.packageName);
+                                        }
                                     }
                                 }
                             }

@@ -17,6 +17,9 @@ namespace AtomPackageManager.Packages
         private string m_Version = "0.0.0.0";
 
         [SerializeField]
+        private bool m_AddToProjectSolution = true;
+
+        [SerializeField]
         private List<string> m_CompiledScripts = new List<string>();
 
         [SerializeField]
@@ -69,6 +72,18 @@ namespace AtomPackageManager.Packages
             get { return m_UnityAssetPath; }
 #if DEVELOPMENT
             set { m_UnityAssetPath = value; }
+#endif
+        }
+
+        /// <summary>
+        /// If true a cs project will be generated and 
+        /// appended to this projects solution.
+        /// </summary>
+        public bool addToProjectSolution
+        {
+            get { return m_AddToProjectSolution; }
+#if DEVELOPMENT
+            set { m_AddToProjectSolution = value; }
 #endif
         }
 

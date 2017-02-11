@@ -31,6 +31,7 @@ namespace AtomPackageManager
         private Vector2 m_PackageInfoScrollPosition;
         private Vector2 m_PackageListScrollPosition;
         private int m_PackageSelectionIndex = -1;
+        private int m_AssemblySelectionIndex = 0;
 
         // Packages
         private string m_NewPackageURL = "https://github.com/ByronMayne/UnityIO.git";
@@ -44,6 +45,8 @@ namespace AtomPackageManager
         private SerializedProperty m_PackageManager;
         private SerializedProperty m_PackagesList;
         private SerializedProperty m_Settings;
+
+        private GUICarousel m_PackageCarousel;
 
 
         [SerializeField]
@@ -96,6 +99,9 @@ namespace AtomPackageManager
             m_SettingsEditorOpen = new AnimBool(false);
             m_AddRepositoryPackageEditorOpen.valueChanged.AddListener(Repaint);
             m_SettingsEditorOpen.valueChanged.AddListener(Repaint);
+
+            // Create our carousel
+            m_PackageCarousel = new GUICarousel(m_PackagesList, Repaint);
         }
 
         private void OnDisable()
@@ -333,7 +339,7 @@ namespace AtomPackageManager
 
                             Rect rect = GUILayoutUtility.GetLastRect();
 
-                            if(Event.current.type == EventType.MouseDown && rect.Contains(Event.current.mousePosition))
+                            if (Event.current.type == EventType.MouseDown && rect.Contains(Event.current.mousePosition))
                             {
                                 m_PackageSelectionIndex = i;
                                 Repaint();
@@ -374,7 +380,6 @@ namespace AtomPackageManager
 
         private void DrawContentArea(Rect packageInfoRect)
         {
-
             bool hasPackageSelected = m_PackageSelectionIndex > -1 && m_PackageSelectionIndex < m_PackagesList.arraySize;
 
             GUILayout.BeginArea(packageInfoRect);
@@ -383,7 +388,8 @@ namespace AtomPackageManager
                 {
                     if (hasPackageSelected)
                     {
-                        EditorGUILayout.PropertyField(m_PackagesList.GetArrayElementAtIndex(m_PackageSelectionIndex), true);
+                        SerializedProperty selectedPackage = m_PackagesList.GetArrayElementAtIndex(m_PackageSelectionIndex);
+                        DrawPackage(selectedPackage);
                     }
                     else
                     {
@@ -415,6 +421,83 @@ namespace AtomPackageManager
                 }
             }
             GUILayout.EndArea();
+        }
+
+        private void DrawPackage(SerializedProperty selectedPackage)
+        {
+            SerializedProperty assemblies = selectedPackage.FindPropertyRelative("m_Assemblies");
+
+            // Header
+
+            GUILayout.BeginVertical();
+            {
+                EditorGUILayout.PropertyField(selectedPackage.FindPropertyRelative("m_PackageName"));
+                EditorGUILayout.PropertyField(selectedPackage.FindPropertyRelative("m_Version"));
+                EditorGUILayout.PropertyField(selectedPackage.FindPropertyRelative("m_RepositoryURL"));
+            }
+            GUILayout.EndVertical();
+            EditorGUILayout.Separator();
+            GUILayout.BeginHorizontal();
+            {
+                if (m_AssemblySelectionIndex >= assemblies.arraySize)
+                {
+                    m_AssemblySelectionIndex = 0;
+                }
+
+                for (int i = 0; i < assemblies.arraySize; i++)
+                {
+                    SerializedProperty assembly = assemblies.GetArrayElementAtIndex(i);
+                    string label = assembly.displayName;
+
+                    bool wasSelected = m_AssemblySelectionIndex == i;
+                    bool active = GUILayout.Toggle(wasSelected, label, EditorStyles.miniButtonMid);
+
+                    if (wasSelected != active && !wasSelected)
+                    {
+                        m_AssemblySelectionIndex = i;
+                    }
+                }
+            }
+            GUILayout.EndHorizontal();
+
+            // Draw the assembly
+            if(assemblies.arraySize > 0 && m_AssemblySelectionIndex < assemblies.arraySize)
+            {
+                SerializedProperty currentAssembly = assemblies.GetArrayElementAtIndex(m_AssemblySelectionIndex);
+                SerializedProperty assemblyName = currentAssembly.FindPropertyRelative("m_AssemblyName");
+                SerializedProperty addToSolution = currentAssembly.FindPropertyRelative("m_AddToProjectSolution");
+                SerializedProperty compiledScripts = currentAssembly.FindPropertyRelative("m_CompiledScripts");
+                SerializedProperty references = currentAssembly.FindPropertyRelative("m_References");
+                SerializedProperty supportedPlatforms = currentAssembly.FindPropertyRelative("m_SupportPlatforms");
+
+                GUIStyle style = new GUIStyle(EditorStyles.boldLabel);
+                style.fontSize = 20;
+
+                GUILayout.Label(assemblyName.stringValue, style);
+                GUILayout.Box(GUIContent.none, GUILayout.ExpandWidth(true), GUILayout.Height(4));
+
+                GUILayout.Label("About", EditorStyles.boldLabel);
+                EditorGUILayout.PropertyField(assemblyName);
+                EditorGUILayout.PropertyField(addToSolution);
+                GUILayout.Label("References", EditorStyles.boldLabel);
+                for(int i = 0; i < references.arraySize; i++)
+                {
+                    EditorGUILayout.PropertyField(references.GetArrayElementAtIndex(i), GUIContent.none);
+                }
+                GUILayout.Label("Compiled Scripts", EditorStyles.boldLabel);
+                for (int i = 0; i < compiledScripts.arraySize; i++)
+                {
+                    EditorGUILayout.PropertyField(compiledScripts.GetArrayElementAtIndex(i), GUIContent.none);
+                }
+                GUILayout.Label("Supported Platforms", EditorStyles.boldLabel);
+                if(supportedPlatforms.Next(true))
+                {
+                    do
+                    {
+                        supportedPlatforms.boolValue = EditorGUILayout.ToggleLeft(supportedPlatforms.name, supportedPlatforms.boolValue);
+                    } while (supportedPlatforms.Next(false));
+                }
+            }
         }
 
         private void OnSavePackageButtonPressed()

@@ -134,8 +134,6 @@ namespace AtomPackageManager.Resolvers
                 {
                     string fullName = assembly.assemblyName + ", Version=" + package.version + " Culture=neutral, PublicKeyToken=null";
 
-                    UnityEngine.Debug.Log("Found: " + fullName);
-
                     if (string.CompareOrdinal(assemblyName, fullName) == 0)
                     {
                         foundAssembly = true;
@@ -144,7 +142,6 @@ namespace AtomPackageManager.Resolvers
 
                     string lowercase = assembly.assemblyName.ToLower();
 
-                    UnityEngine.Debug.Log("assemblyName: " + assemblyName + " Build: " + buildingAssembly);
                     if (lowercase.Contains(assemblyName.ToLower()) && !assemblyName.StartsWith(buildingAssembly + ","))
                     {
                         bestGuess = fullName;

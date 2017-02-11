@@ -14,9 +14,6 @@ namespace AtomPackageManager.Packages
         private string m_UnityAssetPath;
 
         [SerializeField]
-        private string m_Version = "0.0.0.0";
-
-        [SerializeField]
         private bool m_AddToProjectSolution = true;
 
         [SerializeField]
@@ -60,7 +57,7 @@ namespace AtomPackageManager.Packages
 
         public string fullName
         {
-            get { return m_AssemblyName + ", Version=" + m_Version + " Culture=neutral, PublicKeyToken=null"; }
+            get { return m_AssemblyName + ", Version=0.0.0.0 Culture=neutral, PublicKeyToken=null"; }
         }
 
         /// <summary>

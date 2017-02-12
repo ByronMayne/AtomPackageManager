@@ -182,6 +182,10 @@ public class GUICarousel
         // Loop over all elements.
         int loopCount = 0; // 
 
+        if(m_ElementCount == 1)
+        {
+            loopCount = 0;
+        }
         if (m_ElementCount < 3)
         {
             loopCount = 1;
@@ -192,7 +196,7 @@ public class GUICarousel
         }
 
         // Set our starting value
-        for (int i = drawSelection ? 0 : direction; Mathf.Abs(i) < loopCount + 1; i += direction)
+        for (int i = drawSelection ? 0 : direction; Mathf.Abs(i) < loopCount; i += direction)
         {
             // Get our base selection
             int elementIndex = m_SelectedIndex + i;
@@ -240,6 +244,7 @@ public class GUICarousel
             }
         }
     }
+
 
 
     private void DefaultDrawToolbar(Rect rect)

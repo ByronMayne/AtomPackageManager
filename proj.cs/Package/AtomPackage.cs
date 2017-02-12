@@ -29,6 +29,9 @@ namespace AtomPackageManager.Packages
         [SerializeField]
         private int m_LocalNewFiles = 2;
 
+        [SerializeField]
+        private bool m_AddToProjectSolution;
+
         [System.NonSerialized]
         private ThreadRoutine m_CompilingRoutine; 
 

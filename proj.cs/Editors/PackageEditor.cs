@@ -29,7 +29,6 @@ namespace AtomPackageManager
         private Rect m_WorkingContentRect;
 
         private Vector2 m_PackageInfoScrollPosition;
-        private Vector2 m_PackageListScrollPosition;
         private int m_PackageSelectionIndex = -1;
         private int m_AssemblySelectionIndex = 0;
 
@@ -102,7 +101,10 @@ namespace AtomPackageManager
 
             // Create our carousel
             m_PackageCarousel = new GUICarousel(m_PackagesList, Repaint);
+            m_PackageCarousel.onDrawElementCallback += OnDrawPackageElement;
         }
+
+
 
         private void OnDisable()
         {
@@ -114,7 +116,29 @@ namespace AtomPackageManager
         {
             LoadStyles();
             DrawToolbar();
-            DrawContentArea();
+            m_PackageCarousel.DoGUILayout();
+
+            if(m_PackageCarousel.selectedElement != null)
+            {
+                DrawPackage(m_PackageCarousel.selectedElement);
+            }
+            //DrawContentArea();
+        }
+
+        private void OnDrawPackageElement(Rect rect, SerializedProperty element, bool isSelected)
+        {
+            if(isSelected)
+            {
+                GUI.color = Color.gray;
+            }
+
+            SerializedProperty packageName = element.FindPropertyRelative("m_PackageName");
+            GUIStyle style = new GUIStyle(EditorStyles.wordWrappedLabel);
+            style.fontSize = 20;
+            style.alignment = TextAnchor.MiddleCenter;
+            GUI.Box(rect, GUIContent.none);
+            GUI.Label(rect, packageName.stringValue, style);
+            GUI.color = Color.white;
         }
 
         private void DrawToolbar()
@@ -130,8 +154,7 @@ namespace AtomPackageManager
                         GenericMenu atomMenu = new GenericMenu(); ;
                         atomMenu.AddItem(Labels.addExistingPackageButton, false, OnAddExisitingPackageButtonPressed);
                         atomMenu.AddItem(Labels.clonePackageButton, false, OnCloneNewPackagePressed);
-                        //atomMenu.AddItem(Labels.createNewPackageButton, false, OnCreateNewPackagePressed);
-                        atomMenu.AddDisabledItem(Labels.createNewPackageButton);
+                        atomMenu.AddItem(Labels.createNewPackageButton, false, OnCreateNewPackagePressed);
                         atomMenu.AddSeparator(string.Empty);
                         //atomMenu.AddItem(Labels.closeAtomButton, false, OnQuitPressed);
                         atomMenu.AddItem(Labels.packageEditorSettingsButton, m_SettingsEditorOpen.target, ToggleSettingsView);
@@ -195,7 +218,8 @@ namespace AtomPackageManager
 
         private void OnCreateNewPackagePressed()
         {
-
+            string projectLocation = EditorUtility.OpenFolderPanel("Project Location", FilePaths.libraryPath, "Project Location");
+            AtomPackage package = AtomPackage.CreatePackage("", projectLocation);
         }
 
         /// <summary>
@@ -219,212 +243,11 @@ namespace AtomPackageManager
             Rect packageInfoRect = m_WorkingContentRect;
             packageInfoRect.x += m_PackageListWidth;
             packageInfoRect.width -= m_PackageListWidth;
-
-            DrawLeftPanel(packageListRect);
-            DrawContentArea(packageInfoRect);
-            HandleDrag(packageListRect);
-        }
-
-        private void HandleDrag(Rect packageListRect)
-        {
-            Rect dragRect = packageListRect;
-            dragRect.x = m_PackageListWidth - DRAG_RECT_WIDTH;
-            dragRect.width = DRAG_RECT_WIDTH * 2f;
-
-            // Changes the mouse icon to an left right arrow to show the user they can slide the values. 
-            EditorGUIUtility.AddCursorRect(dragRect, MouseCursor.SplitResizeLeftRight);
-
-            if (Event.current.type == EventType.MouseDrag && m_IsResizingList)
-            {
-                // Update our position.
-                m_PackageListWidth = Event.current.mousePosition.x;
-
-                // Clamp our window.
-                if (m_PackageListWidth < MIN_SPLIT_SIZE)
-                {
-                    m_PackageListWidth = MIN_SPLIT_SIZE;
-                }
-                else if (m_PackageListWidth > position.width - MIN_SPLIT_SIZE)
-                {
-                    m_PackageListWidth = position.width - MIN_SPLIT_SIZE;
-                }
-
-                // Repaint so it does not lag
-                Repaint();
-                // Use the drag event. 
-                Event.current.Use();
-            }
-
-            // We clicked on the label rect. 
-            if (Event.current.type == EventType.MouseDown && dragRect.Contains(Event.current.mousePosition))
-            {
-                // Use the current event. 
-                Event.current.Use();
-                // We are now resizing.
-                m_IsResizingList = true;
-            }
-
-            // We have stopped dragging and dropping. 
-            if (Event.current.type == EventType.MouseUp)
-            {
-                // We are not resizing. 
-                m_IsResizingList = false;
-            }
-        }
-
-        private void DrawLeftPanel(Rect packageListRect)
-        {
-            if (m_SerializedAtom == null)
-            {
-                return;
-            }
-
-            GUILayout.BeginArea(packageListRect);
-            {
-                if (EditorGUILayout.BeginFadeGroup(m_AddRepositoryPackageEditorOpen.faded))
-                {
-                    m_NewPackageURL = EditorGUILayout.TextField(m_NewPackageURL);
-                    GUILayout.BeginHorizontal();
-                    {
-                        if (GUILayout.Button("Add", EditorStyles.miniButtonLeft))
-                        {
-                            m_Atom.Clone(m_NewPackageURL, FilePaths.atomWorkingDirectory);
-                            m_AddRepositoryPackageEditorOpen.target = false;
-                        }
-
-                        if (GUILayout.Button("Cancel", EditorStyles.miniButtonRight))
-                        {
-                            m_AddRepositoryPackageEditorOpen.target = false;
-                        }
-                    }
-                    GUILayout.EndHorizontal();
-
-                }
-                EditorGUILayout.EndFadeGroup();
-
-                GUILayout.Space(3.0f);
-                GUILayout.Box(GUIContent.none, GUILayout.ExpandWidth(true), GUILayout.Height(3.0f));
-
-                m_PackageListScrollPosition = EditorGUILayout.BeginScrollView(m_PackageListScrollPosition, (GUIStyle)"AnimationCurveEditorBackground");
-                {
-
-                    for (int i = 0; i < m_PackagesList.arraySize; i++)
-                    {
-                        SerializedProperty currentPackage = m_PackagesList.GetArrayElementAtIndex(i);
-                        if (currentPackage != null)
-                        {
-
-                            SerializedProperty name = currentPackage.FindPropertyRelative("m_PackageName");
-
-                            GUIContent label = new GUIContent(name.stringValue);
-
-                            bool startingValue = m_PackageSelectionIndex == i;
-
-                            GUI.color = m_PackageSelectionIndex == i ? Color.gray : Color.white;
-                            GUILayout.BeginVertical(label, GUI.skin.window);
-                            GUI.color = Color.white;
-                            {
-                                GUILayout.BeginHorizontal();
-                                {
-                                    GUILayout.FlexibleSpace();
-                                    GUILayout.Label(currentPackage.FindPropertyRelative("m_LocalChanges").intValue.ToString(), "sv_label_0");
-                                    GUILayout.Space(4);
-                                    GUILayout.Label(currentPackage.FindPropertyRelative("m_LocalDeletions").intValue.ToString(), "sv_label_6");
-                                    GUILayout.Space(4);
-                                    GUILayout.Label(currentPackage.FindPropertyRelative("m_LocalNewFiles").intValue.ToString(), "sv_label_3");
-                                }
-                                GUILayout.EndHorizontal();
-                            }
-                            GUILayout.EndVertical();
-
-                            Rect rect = GUILayoutUtility.GetLastRect();
-
-                            if (Event.current.type == EventType.MouseDown && rect.Contains(Event.current.mousePosition))
-                            {
-                                m_PackageSelectionIndex = i;
-                                Repaint();
-                            }
-                        }
-                        else
-                        {
-                            m_PackagesList.DeleteArrayElementAtIndex(i);
-                        }
-                    }
-                    GUILayout.FlexibleSpace();
-                }
-                EditorGUILayout.EndScrollView();
-
-                GUILayout.Box(GUIContent.none, GUILayout.ExpandWidth(true), GUILayout.Height(3.0f));
-
-                GUILayout.Space(3.0f);
-
-                if (EditorGUILayout.BeginFadeGroup(m_SettingsEditorOpen.faded))
-                {
-                    SerializedProperty settingsCopy = m_Settings.Copy();
-                    settingsCopy.NextVisible(true);
-                    do
-                    {
-                        EditorGUILayout.PropertyField(settingsCopy, true);
-                    } while (settingsCopy.NextVisible(false));
-
-                    if (GUILayout.Button("Save Settings"))
-                    {
-                        m_SettingsEditorOpen.target = false;
-                        m_Atom.Save();
-                    }
-                }
-                EditorGUILayout.EndFadeGroup();
-            }
-            GUILayout.EndArea();
-        }
-
-        private void DrawContentArea(Rect packageInfoRect)
-        {
-            bool hasPackageSelected = m_PackageSelectionIndex > -1 && m_PackageSelectionIndex < m_PackagesList.arraySize;
-
-            GUILayout.BeginArea(packageInfoRect);
-            {
-                m_PackageInfoScrollPosition = EditorGUILayout.BeginScrollView(m_PackageInfoScrollPosition);
-                {
-                    if (hasPackageSelected)
-                    {
-                        SerializedProperty selectedPackage = m_PackagesList.GetArrayElementAtIndex(m_PackageSelectionIndex);
-                        DrawPackage(selectedPackage);
-                    }
-                    else
-                    {
-                        EditorGUILayout.HelpBox("Select a package on the left to start editing it's contents", MessageType.Info);
-                    }
-                }
-                EditorGUILayout.EndScrollView();
-
-                if (hasPackageSelected)
-                {
-                    GUILayout.BeginHorizontal(EditorStyles.textArea);
-                    {
-                        if (GUILayout.Button(Labels.packageEditorSaveButton))
-                        {
-                            OnSavePackageButtonPressed();
-                        }
-
-                        if (GUILayout.Button(Labels.packageCompileButton))
-                        {
-                            OnCompilePackageButtonPressed();
-                        }
-
-                        if (GUILayout.Button(Labels.packageEditorRemoveButton))
-                        {
-                            OnRemovePackageButtonPressed();
-                        }
-                    }
-                    GUILayout.EndHorizontal();
-                }
-            }
-            GUILayout.EndArea();
         }
 
         private void DrawPackage(SerializedProperty selectedPackage)
         {
+            m_PackageInfoScrollPosition = EditorGUILayout.BeginScrollView(m_PackageInfoScrollPosition);
             SerializedProperty assemblies = selectedPackage.FindPropertyRelative("m_Assemblies");
 
             // Header
@@ -494,10 +317,14 @@ namespace AtomPackageManager
                 {
                     do
                     {
-                        supportedPlatforms.boolValue = EditorGUILayout.ToggleLeft(supportedPlatforms.name, supportedPlatforms.boolValue);
+                        if(supportedPlatforms.propertyType == SerializedPropertyType.Boolean)
+                        {
+                            supportedPlatforms.boolValue = EditorGUILayout.ToggleLeft(supportedPlatforms.name, supportedPlatforms.boolValue);
+                        }
                     } while (supportedPlatforms.Next(false));
                 }
             }
+            EditorGUILayout.EndScrollView();
         }
 
         private void OnSavePackageButtonPressed()

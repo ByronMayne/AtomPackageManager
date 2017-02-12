@@ -1,13 +1,8 @@
-﻿using System.Collections.Generic;
-using UnityEditor;
+﻿using UnityEditor;
 using UnityEngine;
 using AtomPackageManager.Packages;
-using AtomPackageManager.Services;
 using System;
-using System.IO;
 using UnityEditor.AnimatedValues;
-using AtomPackageManager.Popups;
-using AtomPackageManager.Services.Implementations;
 
 namespace AtomPackageManager
 {
@@ -16,10 +11,13 @@ namespace AtomPackageManager
         private string m_PackageSearchFilter = "";
 
         // Styles
+        [NonSerialized]
         private bool m_StylesLoaded = false;
         private GUIStyle m_ToolbarSerachFieldStyle;
         private GUIStyle m_ToobarCancelButtonStyle;
         private GUIStyle m_AddRemovePackageStyle;
+
+
 
         // Split Window Settings. 
         private const float DRAG_RECT_WIDTH = 5f;
@@ -78,6 +76,7 @@ namespace AtomPackageManager
             m_ToobarCancelButtonStyle = GUI.skin.FindStyle("ToolbarSeachCancelButton");
             m_ToobarCancelButtonStyle = new GUIStyle(m_ToobarCancelButtonStyle);
             m_AddRemovePackageStyle = new GUIStyle(EditorStyles.miniButtonMid);
+
             m_StylesLoaded = true;
         }
 
@@ -118,16 +117,15 @@ namespace AtomPackageManager
             DrawToolbar();
             m_PackageCarousel.DoGUILayout();
 
-            if(m_PackageCarousel.selectedElement != null)
+            if (m_PackageCarousel.selectedElement != null)
             {
                 DrawPackage(m_PackageCarousel.selectedElement);
             }
-            //DrawContentArea();
         }
 
         private void OnDrawPackageElement(Rect rect, SerializedProperty element, bool isSelected)
         {
-            if(isSelected)
+            if (isSelected)
             {
                 GUI.color = Color.gray;
             }
@@ -284,7 +282,7 @@ namespace AtomPackageManager
             GUILayout.EndHorizontal();
 
             // Draw the assembly
-            if(assemblies.arraySize > 0 && m_AssemblySelectionIndex < assemblies.arraySize)
+            if (assemblies.arraySize > 0 && m_AssemblySelectionIndex < assemblies.arraySize)
             {
                 SerializedProperty currentAssembly = assemblies.GetArrayElementAtIndex(m_AssemblySelectionIndex);
                 SerializedProperty assemblyName = currentAssembly.FindPropertyRelative("m_AssemblyName");
@@ -302,26 +300,19 @@ namespace AtomPackageManager
                 GUILayout.Label("About", EditorStyles.boldLabel);
                 EditorGUILayout.PropertyField(assemblyName);
                 EditorGUILayout.PropertyField(addToSolution);
+                GUILayout.Label("Supported Platforms", EditorStyles.boldLabel);
+                EditorGUILayout.PropertyField(supportedPlatforms, true);
+
                 GUILayout.Label("References", EditorStyles.boldLabel);
-                for(int i = 0; i < references.arraySize; i++)
+                for (int i = 0; i < references.arraySize; i++)
                 {
                     EditorGUILayout.PropertyField(references.GetArrayElementAtIndex(i), GUIContent.none);
                 }
+
                 GUILayout.Label("Compiled Scripts", EditorStyles.boldLabel);
                 for (int i = 0; i < compiledScripts.arraySize; i++)
                 {
                     EditorGUILayout.PropertyField(compiledScripts.GetArrayElementAtIndex(i), GUIContent.none);
-                }
-                GUILayout.Label("Supported Platforms", EditorStyles.boldLabel);
-                if(supportedPlatforms.Next(true))
-                {
-                    do
-                    {
-                        if(supportedPlatforms.propertyType == SerializedPropertyType.Boolean)
-                        {
-                            supportedPlatforms.boolValue = EditorGUILayout.ToggleLeft(supportedPlatforms.name, supportedPlatforms.boolValue);
-                        }
-                    } while (supportedPlatforms.Next(false));
                 }
             }
             EditorGUILayout.EndScrollView();

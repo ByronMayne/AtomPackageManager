@@ -44,6 +44,7 @@
   <ItemGroup>
     <Compile Include="Atom.cs" />
     <Compile Include="BuiltInResourcesWindow.cs" />
+    <Compile Include="Editors\PluginPlatformsDrawer.cs" />
     <Compile Include="Utility\Constants.cs" />
     <Compile Include="Attributes\AssemblyNameAttribute.cs" />
     <Compile Include="Editors\AssemblyNamePropertyDrawer.cs" />

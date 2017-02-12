@@ -6,91 +6,101 @@ using System.Xml.Serialization;
 [System.Serializable]
 public class PluginPlatforms
 {
+    public static readonly string[] SUPPORTED_CPU = { "Any CPU", "x86", "x86_64" };
+
+    public static readonly string[] SUPPORTED_OS = { "Any OS", "OSX", "Windows", "Linux" };
+
     [SerializeField]
     public bool editorCompatible = true;
 
-	[SerializeField]
+    [SerializeField]
     public bool anyPlatformCompatible = true;
 
-  
-	[SerializeField]
-	public bool StandaloneOSXUniversalCompatible = true;
-  
-	[SerializeField]
-	public bool StandaloneOSXIntelCompatible = true;
-  
-	[SerializeField]
-	public bool StandaloneWindowsCompatible = true;
-  
-	[SerializeField]
-	public bool iOSCompatible = true;
-  
-	[SerializeField]
-	public bool PS3Compatible = true;
-  
-	[SerializeField]
-	public bool XBOX360Compatible = true;
-  
-	[SerializeField]
-	public bool AndroidCompatible = true;
-  
-	[SerializeField]
-	public bool StandaloneLinuxCompatible = true;
-  
-	[SerializeField]
-	public bool StandaloneWindows64Compatible = true;
-  
-	[SerializeField]
-	public bool WebGLCompatible = true;
-  
-	[SerializeField]
-	public bool WSAPlayerCompatible = true;
-  
-	[SerializeField]
-	public bool StandaloneLinux64Compatible = true;
-  
-	[SerializeField]
-	public bool StandaloneLinuxUniversalCompatible = true;
-  
-	[SerializeField]
-	public bool StandaloneOSXIntel64Compatible = true;
-  
-	[SerializeField]
-	public bool TizenCompatible = true;
-  
-	[SerializeField]
-	public bool PSP2Compatible = true;
-  
-	[SerializeField]
-	public bool PS4Compatible = true;
-  
-	[SerializeField]
-	public bool PSMCompatible = true;
-  
-	[SerializeField]
-	public bool XboxOneCompatible = true;
-  
-	[SerializeField]
-	public bool SamsungTVCompatible = true;
-  
-	[SerializeField]
-	public bool Nintendo3DSCompatible = true;
-  
-	[SerializeField]
-	public bool WiiUCompatible = true;
-  
-	[SerializeField]
-	public bool tvOSCompatible = true;
+    [SerializeField]
+	public int targetOS;
 
-	public bool ApplyToImporter(PluginImporter importer)
+	[SerializeField]
+	public int targetCPU;
+
+  
+    [SerializeField]
+    public bool StandaloneOSXUniversalCompatible = true;
+  
+    [SerializeField]
+    public bool StandaloneOSXIntelCompatible = true;
+  
+    [SerializeField]
+    public bool StandaloneWindowsCompatible = true;
+  
+    [SerializeField]
+    public bool iOSCompatible = true;
+  
+    [SerializeField]
+    public bool PS3Compatible = true;
+  
+    [SerializeField]
+    public bool XBOX360Compatible = true;
+  
+    [SerializeField]
+    public bool AndroidCompatible = true;
+  
+    [SerializeField]
+    public bool StandaloneLinuxCompatible = true;
+  
+    [SerializeField]
+    public bool StandaloneWindows64Compatible = true;
+  
+    [SerializeField]
+    public bool WebGLCompatible = true;
+  
+    [SerializeField]
+    public bool WSAPlayerCompatible = true;
+  
+    [SerializeField]
+    public bool StandaloneLinux64Compatible = true;
+  
+    [SerializeField]
+    public bool StandaloneLinuxUniversalCompatible = true;
+  
+    [SerializeField]
+    public bool StandaloneOSXIntel64Compatible = true;
+  
+    [SerializeField]
+    public bool TizenCompatible = true;
+  
+    [SerializeField]
+    public bool PSP2Compatible = true;
+  
+    [SerializeField]
+    public bool PS4Compatible = true;
+  
+    [SerializeField]
+    public bool PSMCompatible = true;
+  
+    [SerializeField]
+    public bool XboxOneCompatible = true;
+  
+    [SerializeField]
+    public bool SamsungTVCompatible = true;
+  
+    [SerializeField]
+    public bool Nintendo3DSCompatible = true;
+  
+    [SerializeField]
+    public bool WiiUCompatible = true;
+  
+    [SerializeField]
+    public bool tvOSCompatible = true;
+
+    public bool ApplyToImporter(PluginImporter importer)
     {
-		bool hadChanges = false;
-		if(importer.GetCompatibleWithEditor() != editorCompatible)
+        bool hadChanges = false;
+        if(importer.GetCompatibleWithEditor() != editorCompatible)
         {
             importer.SetCompatibleWithEditor(editorCompatible);
             hadChanges = true;
         }
-		if(importer.GetCompatibleWithAnyPlatform() != anyPlatformCompatible)
+        if(importer.GetCompatibleWithAnyPlatform() != anyPlatformCompatible)
         {
             importer.SetCompatibleWithAnyPlatform(anyPlatformCompatible);
             hadChanges = true;
@@ -210,6 +220,6 @@ public class PluginPlatforms
             importer.SetCompatibleWithPlatform(BuildTarget.tvOS, tvOSCompatible);
             hadChanges = true;
         }
-		return hadChanges;
+        return hadChanges;
     }
 }

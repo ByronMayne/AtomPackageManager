@@ -11,20 +11,20 @@
 <#@ import namespace="System.Reflection" #>
 <#@ import namespace="System.Collections.Generic" #> 
 <#	
-	Type enumType = typeof(BuildTarget);
-	BuildTarget[] targets = System.Enum.GetValues(enumType) as BuildTarget[];
-	List<BuildTarget> validTargets = new List<BuildTarget>();
+    Type enumType = typeof(BuildTarget);
+    BuildTarget[] targets = System.Enum.GetValues(enumType) as BuildTarget[];
+    List<BuildTarget> validTargets = new List<BuildTarget>();
 
-	for(int i = 0; i < targets.Length; i++)
+    for(int i = 0; i < targets.Length; i++)
     {
-		if(targets[i] >= 0 ) 
+        if(targets[i] >= 0 ) 
         {
-			// Get the member
-			MemberInfo enumMember = enumType.GetMember(targets[i].ToString())[0];
-			// Make sure it's not Obsolete
-			if(Attribute.GetCustomAttribute(enumMember, typeof(System.ObsoleteAttribute), false) == null)
+            // Get the member
+            MemberInfo enumMember = enumType.GetMember(targets[i].ToString())[0];
+            // Make sure it's not Obsolete
+            if(Attribute.GetCustomAttribute(enumMember, typeof(System.ObsoleteAttribute), false) == null)
             {
-				validTargets.Add(targets[i]);
+                validTargets.Add(targets[i]);
             }
         }
     }
@@ -36,28 +36,38 @@ using System.Xml.Serialization;
 [System.Serializable]
 public class PluginPlatforms
 {
+    public static readonly string[] SUPPORTED_CPU = { "Any CPU", "x86", "x86_64" };
+
+    public static readonly string[] SUPPORTED_OS = { "Any OS", "OSX", "Windows", "Linux" };
+
     [SerializeField]
     public bool editorCompatible = true;
 
-	[SerializeField]
+    [SerializeField]
     public bool anyPlatformCompatible = true;
 
-<#	for( int i = 0; i < validTargets.Count; i++) {#>  
+    [SerializeField]
+	public int targetOS;
+
 	[SerializeField]
-	public bool <#= validTargets[i] #>Compatible = true;
+	public int targetCPU;
+
+<#	for( int i = 0; i < validTargets.Count; i++) {#>  
+    [SerializeField]
+    public bool <#= validTargets[i] #>Compatible = true;
 <#
-	} 
+    } 
 #>
 
-	public bool ApplyToImporter(PluginImporter importer)
+    public bool ApplyToImporter(PluginImporter importer)
     {
-		bool hadChanges = false;
-		if(importer.GetCompatibleWithEditor() != editorCompatible)
+        bool hadChanges = false;
+        if(importer.GetCompatibleWithEditor() != editorCompatible)
         {
             importer.SetCompatibleWithEditor(editorCompatible);
             hadChanges = true;
         }
-		if(importer.GetCompatibleWithAnyPlatform() != anyPlatformCompatible)
+        if(importer.GetCompatibleWithAnyPlatform() != anyPlatformCompatible)
         {
             importer.SetCompatibleWithAnyPlatform(anyPlatformCompatible);
             hadChanges = true;
@@ -69,8 +79,8 @@ public class PluginPlatforms
             hadChanges = true;
         }
 <#
-	} 
+    } 
 #>
-		return hadChanges;
+        return hadChanges;
     }
 }

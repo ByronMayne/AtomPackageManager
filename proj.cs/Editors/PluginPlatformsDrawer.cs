@@ -25,6 +25,11 @@ namespace AtomPackageManager.Editors
         private static GUIContent m_3DSBuildIcon;
         private static GUIContent m_CPUPopupLabel;
         private static GUIContent m_OSPlatformLabel;
+        private static GUIContent m_WindowsLabel;
+        private static GUIContent m_LinuxLabel;
+        private static GUIContent m_OXSLabel;
+        private static GUIContent m_x86ArchitectureLabel;
+        private static GUIContent m_x86_x64ArchitectureLabel;
 
         // This only works with one on the screen
         private int m_SelectedPlatform;
@@ -48,6 +53,12 @@ namespace AtomPackageManager.Editors
 
                 m_CPUPopupLabel = new GUIContent("CPU");
                 m_OSPlatformLabel = new GUIContent("OS");
+                m_WindowsLabel = new GUIContent("Windows");
+                m_LinuxLabel = new GUIContent("Linux");
+                m_OXSLabel = new GUIContent("Mac OS X");
+                m_x86ArchitectureLabel = new GUIContent("x86");
+                m_x86_x64ArchitectureLabel = new GUIContent("x86_x64");
+
                 m_IsInitialized = true;
             }
         }
@@ -85,7 +96,34 @@ namespace AtomPackageManager.Editors
                 SerializedProperty osTarget = property.FindPropertyRelative("targetOS");
                 osTarget.intValue = EditorGUILayout.Popup(m_OSPlatformLabel.text, osTarget.intValue, PluginPlatforms.SUPPORTED_OS);
             }
-            DoPlatformToggle(ref position, 1, m_StandaloneBuildIcon);
+            if (DoPlatformToggle(ref position, 1, m_StandaloneBuildIcon))
+            {
+                GUILayout.BeginHorizontal();
+                {
+                    GUILayout.BeginVertical();
+                    {
+                        GUILayout.Label(m_WindowsLabel, EditorStyles.boldLabel);
+                        EditorGUILayout.PropertyField(property.FindPropertyRelative("StandaloneWindowsCompatible"), m_x86ArchitectureLabel);
+                        EditorGUILayout.PropertyField(property.FindPropertyRelative("StandaloneWindows64Compatible"), m_x86_x64ArchitectureLabel);
+                    }
+                    GUILayout.EndVertical();
+                    GUILayout.BeginVertical();
+                    {
+                        GUILayout.Label(m_LinuxLabel, EditorStyles.boldLabel);
+                        EditorGUILayout.PropertyField(property.FindPropertyRelative("StandaloneLinuxCompatible"), m_x86ArchitectureLabel);
+                        EditorGUILayout.PropertyField(property.FindPropertyRelative("StandaloneLinux64Compatible"), m_x86_x64ArchitectureLabel);
+                    }
+                    GUILayout.EndVertical();
+                    GUILayout.BeginVertical();
+                    {
+                        GUILayout.Label(m_OXSLabel, EditorStyles.boldLabel);
+                        EditorGUILayout.PropertyField(property.FindPropertyRelative("StandaloneOSXIntelCompatible"), m_x86ArchitectureLabel);
+                        EditorGUILayout.PropertyField(property.FindPropertyRelative("StandaloneOSXIntel64Compatible"), m_x86_x64ArchitectureLabel);
+                    }
+                    GUILayout.EndVertical();
+                }
+                GUILayout.EndHorizontal();
+            }
             DoPlatformToggle(ref position, 2, m_iOSBuildIcon);
             DoPlatformToggle(ref position, 3, m_AndroidBuildIcon);
             DoPlatformToggle(ref position, 4, m_AppleTVBuildIcon);

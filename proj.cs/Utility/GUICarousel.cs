@@ -186,7 +186,7 @@ public class GUICarousel
         {
             loopCount = 0;
         }
-        if (m_ElementCount < 3)
+        if(m_ElementCount == 2)
         {
             loopCount = 1;
         }
@@ -196,7 +196,7 @@ public class GUICarousel
         }
 
         // Set our starting value
-        for (int i = drawSelection ? 0 : direction; Mathf.Abs(i) < loopCount; i += direction)
+        for (int i = drawSelection ? 0 : direction; Mathf.Abs(i) < loopCount + 1; i += direction)
         {
             // Get our base selection
             int elementIndex = m_SelectedIndex + i;

@@ -62,6 +62,12 @@ namespace AtomPackageManager
             m_Settings.Load();
         }
 
+        public void AddPackage(AtomPackage package)
+        {
+            packages.Add(package);
+            Save();
+        }
+
         /// <summary>
         /// Invoked when we have a ON_CLONE_COMPLETE event.
         /// </summary>

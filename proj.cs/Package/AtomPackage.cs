@@ -128,6 +128,7 @@ namespace AtomPackageManager.Packages
 
                 newPackage.assemblies.Add(runtimeAssembly);
             }
+            Debug.Log("Returning New Packge");
             return newPackage;
         }
 

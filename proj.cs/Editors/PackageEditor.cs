@@ -218,6 +218,8 @@ namespace AtomPackageManager
         {
             string projectLocation = EditorUtility.OpenFolderPanel("Project Location", FilePaths.libraryPath, "Project Location");
             AtomPackage package = AtomPackage.CreatePackage("", projectLocation);
+            m_Atom.packageManager.AddPackage(package);
+            m_SerializedAtom.Update();
         }
 
         /// <summary>
@@ -276,6 +278,8 @@ namespace AtomPackageManager
                     if (wasSelected != active && !wasSelected)
                     {
                         m_AssemblySelectionIndex = i;
+                        GUIUtility.hotControl = -1;
+                        GUIUtility.keyboardControl = -1;
                     }
                 }
             }

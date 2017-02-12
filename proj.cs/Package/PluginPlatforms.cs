@@ -22,7 +22,6 @@ public class PluginPlatforms
 	[SerializeField]
 	public int targetCPU;
 
-  
     [SerializeField]
     public bool StandaloneOSXUniversalCompatible = true;
   

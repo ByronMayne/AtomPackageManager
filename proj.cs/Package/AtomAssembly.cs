@@ -50,9 +50,7 @@ namespace AtomPackageManager.Packages
         public string assemblyName
         {
             get { return m_AssemblyName; }
-#if DEVELOPMENT
             set { m_AssemblyName = value; }
-#endif 
         }
 
         public string fullName
@@ -67,9 +65,7 @@ namespace AtomPackageManager.Packages
         public string unityAssetPath
         {
             get { return m_UnityAssetPath; }
-#if DEVELOPMENT
             set { m_UnityAssetPath = value; }
-#endif
         }
 
         /// <summary>
@@ -79,9 +75,7 @@ namespace AtomPackageManager.Packages
         public bool addToProjectSolution
         {
             get { return m_AddToProjectSolution; }
-#if DEVELOPMENT
             set { m_AddToProjectSolution = value; }
-#endif
         }
 
         public string unityAssemblyPath
@@ -110,9 +104,7 @@ namespace AtomPackageManager.Packages
         public List<string> compiledScripts
         {
             get { return m_CompiledScripts; }
-#if DEVELOPMENT
             set { m_CompiledScripts = value; }
-#endif
         }
 
         /// <summary>
@@ -121,9 +113,7 @@ namespace AtomPackageManager.Packages
         public List<string> references
         {
             get { return m_References; }
-#if DEVELOPMENT
             set { m_References = value; }
-#endif
         }
 
         /// <summary>
@@ -133,9 +123,7 @@ namespace AtomPackageManager.Packages
         public bool editorCompatible
         {
             get { return m_SupportPlatforms.editorCompatible; }
-#if DEVELOPMENT
             set { m_SupportPlatforms.editorCompatible = value; }
-#endif
         }
 
         /// <summary>
@@ -145,9 +133,7 @@ namespace AtomPackageManager.Packages
         public bool compatibleWithAnyPlatform
         {
             get { return false; ; }
-#if DEVELOPMENT
             set { }
-#endif
         }
 
         /// <summary>
@@ -156,9 +142,7 @@ namespace AtomPackageManager.Packages
         public PluginPlatforms supportedPlatforms
         {
             get { return m_SupportPlatforms; }
-#if DEVELOPMENT
             set { m_SupportPlatforms = value; }
-#endif
         }
     }
 }

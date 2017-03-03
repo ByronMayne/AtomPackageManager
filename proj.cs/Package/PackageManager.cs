@@ -68,6 +68,23 @@ namespace AtomPackageManager
             Save();
         }
 
+        public void RemovePackage(int packageIndex)
+        {
+            if (packageIndex > 0 && packageIndex < m_Packages.Count)
+            {
+                RemovePackage(m_Packages[packageIndex]);
+            }
+        }
+
+        public void RemovePackage(AtomPackage package)
+        {
+            if(package != null && m_Packages.Contains(package))
+            {
+                m_Packages.Remove(package);
+                Save();
+            }
+        }
+
         /// <summary>
         /// Invoked when we have a ON_CLONE_COMPLETE event.
         /// </summary>

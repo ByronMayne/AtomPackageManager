@@ -99,6 +99,10 @@
     <Service Include="{508349B6-6B84-4DF5-91F0-309BEEBAD82D}" />
   </ItemGroup>
   <ItemGroup>
+    <Content Include="MSBuild\BuildConfig.xml" />
+    <Content Include="MSBuild\Export.xml" />
+    <Content Include="MSBuild\ExportDll.xml" />
+    <Content Include="MSBuild\ExportSource.xml" />
     <Content Include="Package\PluginPlatforms.tt">
       <Generator>TextTemplatingFileGenerator</Generator>
       <LastGenOutput>PluginPlatforms.cs</LastGenOutput>
@@ -115,12 +119,9 @@
       <LastGenOutput>CreateNewAtomFileDialog.Designer.cs</LastGenOutput>
     </EmbeddedResource>
   </ItemGroup>
+  <!--<Import Project="$(ProjectDir)/MSBuild/BuildConfig.xml"/>-->
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
-  <Target Name="AfterBuild">
-    <Copy Condition="Exists('$(TargetDir)$(TargetName).dll')" SourceFiles="$(TargetDir)$(TargetName).dll" DestinationFolder="$(ProjectDir)../proj.unity/Assets/Atom/" />
-    <Copy Condition="Exists('$(TargetDir)$(TargetName).pdb')" SourceFiles="$(TargetDir)$(TargetName).pdb" DestinationFolder="$(ProjectDir)../proj.unity/Assets/Atom/" />
-    <Copy Condition="Exists('$(TargetDir)$(TargetName).dll.mdb')" SourceFiles="$(TargetDir)$(TargetName).dll.mdb" DestinationFolder="$(ProjectDir)../proj.unity/Assets/Atom/" />
-  </Target>
+  <Import Project="MSBuild\BuildConfig.xml" />
   <PropertyGroup>
     <PreBuildEvent>
     </PreBuildEvent>

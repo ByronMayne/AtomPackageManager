@@ -23,15 +23,11 @@ namespace AtomPackageManager
         private const float DRAG_RECT_WIDTH = 5f;
         private const float MIN_SPLIT_SIZE = 50f;
         private float m_PackageListWidth = 100;
-        private bool m_IsResizingList = false;
         private Rect m_WorkingContentRect;
 
         private Vector2 m_PackageInfoScrollPosition;
-        private int m_PackageSelectionIndex = -1;
         private int m_AssemblySelectionIndex = 0;
-
-        // Packages
-        private string m_NewPackageURL = "https://github.com/ByronMayne/UnityIO.git";
+        private bool m_IsInitialized;
 
         // animated values
         private AnimBool m_AddRepositoryPackageEditorOpen;
@@ -82,8 +78,20 @@ namespace AtomPackageManager
 
         private void OnEnable()
         {
+            // Set our min window this
+            minSize = Vector2.one * Constants.MIN_WINDOW_SIZE;
             // Load Atom
             m_Atom = FindObjectOfType<Atom>();
+            // Only init if we found Atom
+            if (m_Atom != null)
+            {
+                Initialize();
+            }
+        }
+
+        private void Initialize()
+        {
+            m_IsInitialized = true;
             // Grab the manager
             m_SerializedAtom = new SerializedObject(m_Atom);
             // Get our package manager
@@ -103,8 +111,6 @@ namespace AtomPackageManager
             m_PackageCarousel.onDrawElementCallback += OnDrawPackageElement;
         }
 
-
-
         private void OnDisable()
         {
             m_AddRepositoryPackageEditorOpen.valueChanged.RemoveListener(Repaint);
@@ -113,13 +119,20 @@ namespace AtomPackageManager
 
         private void OnGUI()
         {
-            LoadStyles();
-            DrawToolbar();
-            m_PackageCarousel.DoGUILayout();
-
-            if (m_PackageCarousel.selectedElement != null)
+            if (m_IsInitialized)
             {
-                DrawPackage(m_PackageCarousel.selectedElement);
+                LoadStyles();
+                DrawToolbar();
+                m_PackageCarousel.DoGUILayout();
+
+                if (m_PackageCarousel.selectedElement != null)
+                {
+                    DrawPackage(m_PackageCarousel.selectedElement);
+                }
+            }
+            else
+            {
+
             }
         }
 
@@ -153,25 +166,19 @@ namespace AtomPackageManager
                         atomMenu.AddItem(Labels.addExistingPackageButton, false, OnAddExisitingPackageButtonPressed);
                         atomMenu.AddItem(Labels.clonePackageButton, false, OnCloneNewPackagePressed);
                         atomMenu.AddItem(Labels.createNewPackageButton, false, OnCreateNewPackagePressed);
+                        if (m_PackageCarousel.hasItemSelected)
+                        {
+                            atomMenu.AddItem(Labels.packageEditorRemoveButton, false, OnRemovePackageButtonPressed);
+                        }
+                        else
+                        {
+                            atomMenu.AddDisabledItem(Labels.packageEditorRemoveButton);
+                        }
                         atomMenu.AddSeparator(string.Empty);
-                        //atomMenu.AddItem(Labels.closeAtomButton, false, OnQuitPressed);
                         atomMenu.AddItem(Labels.packageEditorSettingsButton, m_SettingsEditorOpen.target, ToggleSettingsView);
                         atomMenu.AddDisabledItem(Labels.closeAtomButton);
                         atomMenu.DropDown(buttonRect);
                     }
-
-                    GUILayout.FlexibleSpace();
-
-                    if (GUILayout.Button("+", EditorStyles.toolbarButton))
-                    {
-                        OnAddExisitingPackageButtonPressed();
-                    }
-
-                    if (GUILayout.Button("-", EditorStyles.toolbarButton))
-                    {
-                        OnRemovePackageButtonPressed();
-                    }
-
                 }
                 GUILayout.EndHorizontal();
 
@@ -325,7 +332,7 @@ namespace AtomPackageManager
         private void OnSavePackageButtonPressed()
         {
             // Get the Package
-            AtomPackage package = m_Atom.packageManager.packages[m_PackageSelectionIndex];
+            AtomPackage package = m_Atom.packageManager.packages[m_PackageCarousel.selectionIndex];
 
             // Save to disk
             SaveSerilaizedValues();
@@ -345,7 +352,7 @@ namespace AtomPackageManager
             m_SerializedAtom.ApplyModifiedProperties();
 
             // Get the Package
-            AtomPackage package = m_Atom.packageManager.packages[m_PackageSelectionIndex];
+            AtomPackage package = m_Atom.packageManager.packages[m_PackageCarousel.selectionIndex];
 
             m_Atom.CompilePackage(package);
 
@@ -355,7 +362,7 @@ namespace AtomPackageManager
 
         private void OnRemovePackageButtonPressed()
         {
-            m_Atom.packageManager.packages.RemoveAt(m_PackageSelectionIndex);
+            m_Atom.packageManager.packages.RemoveAt(m_PackageCarousel.selectionIndex);
             m_SerializedAtom.Update();
             GUIUtility.ExitGUI();
         }

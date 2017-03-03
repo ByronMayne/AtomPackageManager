@@ -26,5 +26,7 @@ namespace AtomPackageManager
         public const string SOLUTION_EXTENSION = ".sln";
 
         public const string GENERATED_SOLUTIONS_DIRECTORY_NAME = "Generated Solutions";
+
+        public const float MIN_WINDOW_SIZE = 580f;
     }
 }

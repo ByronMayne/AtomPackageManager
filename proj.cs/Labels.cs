@@ -7,8 +7,8 @@ namespace AtomPackageManager
         static Labels()
         {
             packageEditorTitle = new GUIContent("Package Editor");
-            packageEditorAddButton = new GUIContent("Add", "Opens a window to allow you to add a new package based on a url");
-            packageEditorRemoveButton = new GUIContent("Remove", "Removes the currently selected package from your project");
+            packageEditorAddButton = new GUIContent("Add Package", "Opens a window to allow you to add a new package based on a url");
+            packageEditorRemoveButton = new GUIContent("Remove Package", "Removes the currently selected package from your project");
             packageCompileButton = new GUIContent("Compile Package");
             packageEditorSettingsButton = new GUIContent("Settings");
             packageEditorSaveButton = new GUIContent("Save");

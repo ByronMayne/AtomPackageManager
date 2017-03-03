@@ -12,6 +12,7 @@ public class GUICarousel
     private const int NEIGHBOUR_POSITION_LEFT = -1;
     private const int NEIGHBOUR_POSITION_RIGHT = 1;
     private readonly float TOOLBAR_HEIGHT;
+    private const int CONTROL_HASH = 21578645;
 
     private const float CLIPPING_OFFSET = 25f;
 
@@ -26,6 +27,7 @@ public class GUICarousel
     private float m_ElementWidth;
     private float m_ElementHorizontalSize;
     private int m_ElementCount;
+    private int m_ControlID;
 
     // User Actions
     private OnDrawElementCallbackDelegate m_OnDrawElementCallback;
@@ -69,6 +71,22 @@ public class GUICarousel
     }
 
     /// <summary>
+    /// Returns if we have an element selected and false if we don't.
+    /// </summary>
+    public bool hasItemSelected
+    {
+        get { return selectedElement != null; }
+    }
+
+    /// <summary>
+    /// Gets the index of our active selection.
+    /// </summary>
+    public int selectionIndex
+    {
+        get { return m_SelectedIndex; }
+    }
+
+    /// <summary>
     /// Gets the array element at the current index or null if 
     /// we have no elements. 
     /// </summary>
@@ -109,21 +127,23 @@ public class GUICarousel
 
     public void DoGUI(Rect windowRect)
     {
+        m_ControlID = GUIUtility.GetControlID(CONTROL_HASH, FocusType.Passive, windowRect);
         // Save our full element width
         m_ElementHorizontalSize = m_ElementSpacing.horizontal + m_ElementWidth;
         m_ElementCount = m_Array.arraySize;
 
         GUI.Box(windowRect, GUIContent.none);
 
-        Rect toobarRect = windowRect;
-        toobarRect.height = TOOLBAR_HEIGHT;
+        /*
+         * Rect toobarRect = windowRect;
+        //toobarRect.height = TOOLBAR_HEIGHT;
 
         if (m_OnDrawToolbarCallback == null)
         {
             m_OnDrawToolbarCallback = DefaultDrawToolbar;
         }
         m_OnDrawToolbarCallback(toobarRect);
-
+        */
         // Start our scroll offset
         float elementsPositionOffset = 0.0f;
         // Force it to the center
@@ -136,12 +156,22 @@ public class GUICarousel
 
         if (Event.current.type == EventType.KeyDown && Event.current.keyCode == KeyCode.RightArrow)
         {
-            Next();
+            if (windowRect.Contains(Event.current.mousePosition))
+            {
+                GUIUtility.hotControl = -1;
+                GUIUtility.keyboardControl = -1;
+                Next();
+            }
         }
 
         if (Event.current.type == EventType.KeyDown && Event.current.keyCode == KeyCode.LeftArrow)
         {
-            Previous();
+            if (windowRect.Contains(Event.current.mousePosition))
+            {
+                GUIUtility.hotControl = -1;
+                GUIUtility.keyboardControl = -1;
+                Previous();
+            }
         }
     }
 
@@ -176,17 +206,17 @@ public class GUICarousel
         // Subtract our height
         elementRect.height = m_ElementWidth - m_ElementSpacing.vertical;
         // Move the element down.
-        elementRect.y += m_ElementSpacing.top + TOOLBAR_HEIGHT;
+        elementRect.y += m_ElementSpacing.top;
         // Mod index
         int modIndex = m_SelectedIndex;
         // Loop over all elements.
         int loopCount = 0; // 
 
-        if(m_ElementCount == 1)
+        if (m_ElementCount == 1)
         {
             loopCount = 0;
         }
-        if(m_ElementCount == 2)
+        if (m_ElementCount == 2)
         {
             loopCount = 1;
         }

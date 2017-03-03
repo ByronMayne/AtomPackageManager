@@ -28,7 +28,6 @@ namespace AtomPackageManager
         [InitializeOnLoadMethod]
         private static void Initialize()
         {
-
             // Save our data path
             //  Try to grab our instance
             Atom instance = FindObjectOfType<Atom>();
@@ -36,6 +35,18 @@ namespace AtomPackageManager
             if (instance == null)
             {
                 instance = CreateInstance<Atom>();
+            }
+
+            // Try to find the Editor
+            PackageEditor editor = FindObjectOfType<PackageEditor>();
+            // Check if it's null
+            if(editor != null)
+            {
+                Debug.Log("Found editor");
+            }
+            else
+            {
+                Debug.Log("Did not find editor");
             }
         }
 
